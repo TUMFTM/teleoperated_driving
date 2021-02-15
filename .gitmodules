@@ -1,0 +1,9 @@
+[submodule "wsp/src/tod_common"]
+	path = wsp/src/tod_common
+	url = https://github.com/TUMFTM/tod_common.git
+[submodule "wsp/src/tod_perception"]
+	path = wsp/src/tod_perception
+	url = https://github.com/TUMFTM/tod_perception.git
+[submodule "wsp/src/tod_vehicle_interface"]
+	path = wsp/src/tod_vehicle_interface
+	url = https://github.com/TUMFTM/tod_vehicle_interface.git
