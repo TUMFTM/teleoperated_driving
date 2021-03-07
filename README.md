@@ -6,8 +6,8 @@ Within this repository, the ROS packages are grouped thematically in the followi
 - wsp/src/tod_common
 - wsp/src/tod_vehicle_interface
 - wsp/src/tod_perception
-- wsp/src/tod_operator_interface
-- wsp/src/tod_control
+- wsp/src/tod_operator_interface (to be published)
+- wsp/src/tod_control (to be published)
 
 
 ## System Architecture
