@@ -7,3 +7,10 @@
 [submodule "wsp/src/tod_vehicle_interface"]
 	path = wsp/src/tod_vehicle_interface
 	url = https://github.com/TUMFTM/tod_vehicle_interface.git
+[submodule "wsp/src/tod_operator_interface"]
+	path = wsp/src/tod_operator_interface
+	url = https://github.com/TUMFTM/tod_operator_interface.git
+[submodule "wsp/src/tod_control"]
+	path = wsp/src/tod_control
+	url = https://github.com/TUMFTM/tod_control.git
+
