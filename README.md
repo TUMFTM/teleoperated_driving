@@ -27,9 +27,10 @@ Follow these commands to clone, build and run the TUM FTM Teleoperated Driving S
     ```
   * Install the dependencies of each respective package. A list of dependencies with install commands is found in each package's README.
   * Create the config of your vehicle with the corresponding `vehicleID`, following the instructions and samples in the `tod_vehicle_interface/tod_vehicle_config` package.
-  * Build and source the workspace.
+  * Initialize, build and source the workspace.
     ```
     cd wsp
+    catkin init --workspace .
     catkin build
     source devel/setup.bash # or `setup.zsh`, depending on your shell
     ```
