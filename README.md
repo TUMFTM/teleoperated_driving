@@ -36,6 +36,8 @@ Use the following commands to clone, build and run the TUM FTM Teleoperated Driv
   ```bash
   cd wsp
   catkin config --extend /opt/ros/melodic
+  catkin init --workspace .
+  rosdep install --from-paths src --ignore-src -y --rosdistro=melodic # or noetic etc., depending on your distro
   catkin build
   source devel/setup.bash # or `setup.zsh`, depending on your shell
   ```
