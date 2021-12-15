@@ -61,7 +61,7 @@ Use the following commands to clone, build and run the TUM FTM Teleoperated Driv
 ## Playback Demo
 
 A rosbag for a playback demo has been recorded in the [SVL Driving Simulator](https://www.svlsimulator.com/). Execute the following steps to run the demo.
-* Download the rosbag from TODO-ADD-LINK-TO-FILE and place it under the following file path:
+* Download the rosbag from [here](https://mediatum.ub.tum.de/1636609?v=1) and place it under the following file path:
   `/home/$USER/Documents/ToD_Playback/lgsvl.bag`.
 * In `operator.launch`, set `vehicleID:=lgsvl`
 * In `vehicle.launch`, set `vehicleID:=lgsvl` and `mode:=playbackAll` (or `mode:=playbackSim`, see `doc/` for a detailed description of the launch modes).
