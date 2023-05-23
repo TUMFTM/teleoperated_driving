@@ -36,9 +36,9 @@ Use the following commands to clone, build and run the TUM FTM Teleoperated Driv
 
   ```bash
   cd wsp
-  catkin config --extend /opt/ros/melodic
+  catkin config --extend /opt/ros/$ROS_DISTRO
   catkin init --workspace .
-  rosdep install --from-paths src --ignore-src -y --rosdistro=melodic # or noetic etc., depending on your distro
+  rosdep install --from-paths src --ignore-src -y --rosdistro=$ROS_DISTRO
   catkin build
   source devel/setup.bash # or `setup.zsh`, depending on your shell
   ```
@@ -74,7 +74,7 @@ The data from the rosbag (cameras, laser scanner, vehicle state data) will be pl
 
 ## Publication
 
-The paper is available on [IEEE](https://ieeexplore.ieee.org/document/9742859).
+The paper is available on [IEEE](https://ieeexplore.ieee.org/document/9742859). A presentation of the software stack is available on [mediatum](https://mediatum.ub.tum.de/1129222?show_id=1693635).
 
 ```
 @INPROCEEDINGS{9742859,

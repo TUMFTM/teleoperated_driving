@@ -3,7 +3,7 @@
 ## Build the Software
 After cloning this repository, initialization of the submodules, and installation of dependencies, the software can be built.
   * Enter the workspace.  
-    `cd tof/wsp`
+    `cd teleoperated_driving/wsp`
   * Build the workspace.  
     `catkin build`
   * To speed up compile time or skip nodes (targets) which miss dependencies, there is a list of compile options through which certain targets can be enabled/disabled. 
@@ -66,3 +66,4 @@ The software can be used and tested on one computer without additional hardware 
     * `rostopic hz /Topic/Name`: Prints current publish rate under the given topic. 
     * `rostopic echo /Topic/Name`: Prints content of messages being published under the given topic.
     * `rosnode list /Name/Space`: Prints list of currently active nodes within the (optionally) given namespace. Work similar with `rostopic`, `rosservice` or `rosparam`.
+
