@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="2">
+    <name>tod_data_interface</name>
+    <version>1.0.0</version>
+    <description>a generic ros2 topic sender using protocols from tod_network_procotols. No need to include the required message types</description>
+    <maintainer email="nils.gehrke@tum.de">Nils Gehrke</maintainer>
+    <license>LGPLv3</license>
+    <buildtool_depend>ament_cmake</buildtool_depend>
+    <depend>rclcpp</depend>
+    <depend>tod_status_msgs</depend>
+    <depend>tod_network_protocols</depend>
+  
+    <test_depend>ament_cmake_gtest</test_depend>
+
+    <export>
+        <build_type>ament_cmake</build_type>
+    </export>
+</package>

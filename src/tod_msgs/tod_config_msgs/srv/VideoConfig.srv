@@ -1,0 +1,14 @@
+string camera_name
+bool paused
+int64 actual_width
+int64 actual_height
+string scaling_factor
+int64 width
+int64 height
+int64 offset_width
+int64 offset_height
+int64 bitrate
+---
+int64 empty # 0 if failed 1 if success (for error handling)  
+bool success
+string message 

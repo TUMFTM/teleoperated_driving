@@ -1,0 +1,13 @@
+stages:
+  - build
+
+before_script:
+  - chmod +x ci/build_job.sh
+  
+tod_helper build:
+    stage: build
+    tags:
+      - ros2
+    script:
+      - ./ci/build_job.sh tod_helper
+    allow_failure: true

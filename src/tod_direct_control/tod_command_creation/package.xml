@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package format="3">
+    <name>tod_command_creation</name>
+    <version>1.0.0</version>
+    <description>The tod_command_creation package</description>
+
+    <maintainer email="david.brecht@tum.de">David Brecht</maintainer>
+    <license>LGPLv3</license>
+
+    <buildtool_depend>ament_cmake</buildtool_depend>
+
+    <depend>rclcpp</depend>
+    <depend>tod_operator_msgs</depend>
+    <depend>tod_status_msgs</depend>
+    <depend>tod_vehicle_msgs</depend>
+    <depend>tod_helper</depend>
+    <depend>tod_core</depend>
+    
+    <exec_depend>rosidl_default_runtime</exec_depend>
+    <member_of_group>rosidl_interface_packages</member_of_group>
+
+    <export>
+        <build_type>ament_cmake</build_type>
+    </export>
+</package>

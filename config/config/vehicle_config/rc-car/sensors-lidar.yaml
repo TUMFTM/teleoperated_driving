@@ -1,0 +1,5 @@
+lidar0:
+  name: /livox
+
+lidar_topics_namespace: /livox
+pointcloud_name: /lidar

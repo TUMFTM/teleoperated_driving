@@ -1,0 +1,2 @@
+std_msgs/Header header
+tod_trajectory_guidance_msgs/ControlPoint[] points

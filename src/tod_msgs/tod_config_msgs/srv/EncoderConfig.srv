@@ -1,0 +1,7 @@
+string codec
+string codec_specific_settings # Delimiter =;  "profile=main;tier=high;ctu_size=64"
+string framerate 
+string camera_name 
+---
+bool success
+string message 

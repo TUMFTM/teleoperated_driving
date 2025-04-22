@@ -1,0 +1,266 @@
+###################################################################################
+###--- tod_base --Base----------------------------------------------------------###
+###################################################################################
+ARG DOCKER_ROS_DISTRO=humble
+
+FROM ros:${DOCKER_ROS_DISTRO}-ros-base AS tod_base
+
+ARG DOCKER_USERNAME
+ARG DOCKER_UID
+ARG DOCKER_GID
+
+###--- Create an non-root dev user ---------------------------------------------###
+RUN groupadd --gid ${DOCKER_GID} ${DOCKER_USERNAME} \
+    && useradd -s /bin/bash --uid ${DOCKER_UID} --gid ${DOCKER_GID} -m ${DOCKER_USERNAME} \
+    && echo ${DOCKER_USERNAME} ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/${DOCKER_USERNAME}\
+    && chmod 0440 /etc/sudoers.d/${DOCKER_USERNAME} \
+    && mkdir -p /home/${DOCKER_USERNAME} \
+    && mkdir -p /run/user/${DOCKER_UID} \
+    && chown -R ${DOCKER_UID}:${DOCKER_GID} /home/${DOCKER_USERNAME} \
+    && chown -R ${DOCKER_UID}:${DOCKER_GID} /run/user/${DOCKER_UID} \
+    && chmod -R 700 /run/user/${DOCKER_UID} \
+    && rm -rf /var/lib/apt-get/lists/*
+ENV DOCKER_USERNAME=${DOCKER_USERNAME}
+
+###--- Install basic apt packages -----------------------------------------------###
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    cmake \
+    make \
+    pkg-config \
+    git \
+    software-properties-common
+
+###--- Install ROS packages -----------------------------------------------------###
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ros-${ROS_DISTRO}-rmw-cyclonedds-cpp
+
+###--- Install GSTREAMER packages -----------------------------------------------###
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgstreamer1.0-0 \
+    gstreamer1.0-plugins-base \
+    gstreamer1.0-plugins-good \
+    gstreamer1.0-plugins-bad \
+    gstreamer1.0-plugins-ugly \
+    gstreamer1.0-libav \
+    gstreamer1.0-tools \
+    gstreamer1.0-x \
+    gstreamer1.0-alsa \
+    gstreamer1.0-gl \
+    gstreamer1.0-gtk3 \
+    gstreamer1.0-qt5 \
+    gstreamer1.0-pulseaudio \
+    libgstreamer1.0-dev \
+    libgstreamer-plugins-base1.0-dev \
+    libgstrtspserver-1.0-dev
+
+###--- Install network monitoring utilities ------------------------------------###
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpcap-dev \
+    iperf3 \
+    iputils-ping
+
+###--- Set default shell -------------------------------------------------------###
+SHELL ["/bin/bash", "-c"]
+
+###--- Setup ROS workspace -----------------------------------------------------###
+WORKDIR /home/${DOCKER_USERNAME}/wsp
+
+###--- Setup entrypoint --------------------------------------------------------###
+RUN chown -R ${DOCKER_UID}:${DOCKER_GID} /home/${DOCKER_USERNAME}/wsp
+COPY ./docker/entrypoint.sh /
+RUN ["chmod", "+x", "/entrypoint.sh"]
+ENTRYPOINT [ "/entrypoint.sh" ]
+
+
+###################################################################################
+###--- tod_vehicle_base --Base-Extension----------------------------------------###
+###################################################################################
+FROM tod_base AS tod_vehicle_base
+
+RUN apt-get update
+
+###--- Login with user ---------------------------------------------------------###
+USER ${DOCKER_USERNAME}
+
+###--- Install dependencies via rosdep -----------------------------------------###
+RUN --mount=type=bind,source=src,target=/home/${DOCKER_USERNAME}/wsp/src \
+    rosdep update \
+    && rosdep install --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} -y 
+
+###--- Source entrypoint -------------------------------------------------------###
+RUN echo "source /entrypoint.sh" >> /home/${DOCKER_USERNAME}/.bashrc
+
+
+###################################################################################
+###--- tod_operator_base --Base-Extension---------------------------------------###
+###################################################################################
+FROM tod_base AS tod_operator_base
+
+###--- Install QT packages -----------------------------------------------------###
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    qtbase5-dev \
+    qt5-qmake \
+    qtbase5-dev-tools \
+    qt5-doc \
+    qml-module-qtquick2 \
+    qtpositioning5-dev \
+    qtlocation5-dev \
+    libqt5svg5-dev
+
+###--- Install GLM, GLFW, GLEW and other packages ------------------------------###
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libglfw3-dev \
+    libglew-dev \
+    libglm-dev \
+    libassimp-dev \
+    libfreetype-dev \
+    zenity \
+    dbus-x11 \
+    fonts-liberation
+
+###--- Install OPENCV ------------------------------###
+
+RUN apt-get update && apt-get install python3-opencv libopencv-dev ros-humble-cv-bridge -y
+
+###--- Install OpenVR ----------------------------------------------------------###
+RUN add-apt-repository multiverse -y
+
+###--- Install Drivers for Sensowheel ------------------------------------------###
+RUN apt-get update && \
+    apt-get install -y wget build-essential gcc-12 g++-12 linux-headers-$(uname -r) libpopt-dev kmod && \
+    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 100 \
+                        --slave /usr/bin/g++ g++ /usr/bin/g++-12 && \
+    update-alternatives --set gcc /usr/bin/gcc-12 && \
+    mkdir -p /root/peak-linux-driver-8.18.0 && \
+    wget -q https://www.peak-system.com/fileadmin/media/linux/files/peak-linux-driver-8.18.0.tar.gz -O /root/peak-linux-driver-8.18.0/peak-linux-driver-8.18.0.tar.gz && \
+    cd /root/peak-linux-driver-8.18.0 && \
+    tar -xzf peak-linux-driver-8.18.0.tar.gz && \
+    cd peak-linux-driver-8.18.0 && \
+    make clean all && \
+    make install && \
+    update-alternatives --auto gcc && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /root/peak-linux-driver-8.18.0/peak-linux-driver-8.18.0.tar.gz && \
+    sed -i 's/^Info:/# Info:/' /etc/modprobe.d/pcan.conf
+
+RUN apt-get -y update && apt-get install -q -y --no-install-recommends \
+    steam-devices \
+    libvulkan1
+
+RUN cd /tmp && \
+    git clone https://github.com/ValveSoftware/openvr.git openvr && \
+    cd openvr && \
+    git checkout tags/v1.14.15 && \
+    mkdir build && \
+    cd build && \
+    cmake .. && \
+    make -j32 && \
+    sudo make install && \
+    sudo ldconfig && \
+    cd /tmp && \
+    rm -r openvr
+
+RUN apt-get update
+
+###--- Login with user ---------------------------------------------------------###
+USER ${DOCKER_USERNAME}
+
+###--- Install dependencies via rosdep -----------------------------------------###
+WORKDIR /home/${DOCKER_USERNAME}/wsp
+RUN --mount=type=bind,source=src,target=/home/${DOCKER_USERNAME}/wsp/src \
+    rosdep update \
+    && rosdep install --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} -y
+
+###--- Source entrypoint -------------------------------------------------------###
+RUN echo "source /entrypoint.sh" >> /home/${DOCKER_USERNAME}/.bashrc
+
+###################################################################################
+###--- tod_vehicle_builder --Builder--------------------------------------------###
+###################################################################################
+FROM tod_vehicle_base AS tod_vehicle_builder
+
+ARG VEHICLE_BUILD_ARGS
+
+###--- Build colcon workspace --------------------------------------------------###
+WORKDIR /home/${DOCKER_USERNAME}/wsp
+RUN --mount=type=bind,source=src,target=/home/${DOCKER_USERNAME}/wsp/src \
+    --mount=type=bind,source=config,target=/home/${DOCKER_USERNAME}/wsp/config \
+    source /opt/ros/${ROS_DISTRO}/setup.bash \
+    && colcon build ${VEHICLE_BUILD_ARGS}
+
+
+###################################################################################
+###--- tod_operator_builder --Builder-------------------------------------------###
+###################################################################################
+FROM tod_operator_base AS tod_operator_builder
+
+ARG OPERATOR_BUILD_ARGS
+
+###--- Build colcon workspace --------------------------------------------------###
+WORKDIR /home/${DOCKER_USERNAME}/wsp
+RUN --mount=type=bind,source=src,target=/home/${DOCKER_USERNAME}/wsp/src \
+    --mount=type=bind,source=config,target=/home/${DOCKER_USERNAME}/wsp/config \
+    source /opt/ros/${ROS_DISTRO}/setup.bash \
+    && colcon build ${OPERATOR_BUILD_ARGS}
+
+
+###################################################################################
+###--- tod_dev --Development----------------------------------------------------###
+###################################################################################
+FROM tod_operator_base AS tod_dev
+
+USER root
+
+###--- Install additional apt packages for development -------------------------###
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gdb \
+    gdbserver \
+    nano \
+    ros-${ROS_DISTRO}-rqt \
+    ros-${ROS_DISTRO}-rqt-graph \
+    ros-${ROS_DISTRO}-rosbag2-storage-mcap \
+    iproute2 \
+    vim \
+    wget
+
+###--- Install Clang Tool apt packages for development -------------------------###
+
+RUN wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc \
+    && add-apt-repository "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-18 main" \
+    && apt-get update \
+    && apt-get install -y \
+        clang-18 \
+        clang-tools-18 \
+        clang-18-doc \
+        libclang-common-18-dev \
+        libclang-18-dev \
+        libclang1-18 \
+        clang-format-18 \
+        python3-clang-18 \
+        clangd-18 \
+        clang-tidy-18 \
+    && rm -rf /var/lib/apt/lists/*
+
+
+###--- Login with user ---------------------------------------------------------###
+USER ${DOCKER_USERNAME}
+
+
+###################################################################################
+###--- tod_vehicle --Deployment-------------------------------------------------###
+###################################################################################
+FROM tod_vehicle_base AS tod_vehicle
+
+###--- Copy install files from builder -----------------------------------------###
+COPY --from=tod_vehicle_builder \
+     /home/${DOCKER_USERNAME}/wsp/install /home/${DOCKER_USERNAME}/wsp/install
+
+
+###################################################################################
+###--- tod_operator --Deployment------------------------------------------------###
+###################################################################################
+FROM tod_operator_base AS tod_operator
+
+###--- Copy install files from builder -----------------------------------------###
+COPY --from=tod_operator_builder \
+     /home/${DOCKER_USERNAME}/wsp/install /home/${DOCKER_USERNAME}/wsp/install

@@ -1,0 +1,9 @@
+/**:
+  ros__parameters:
+    maxCurv: 0.133  # default for EDGAR
+    ControlMode: 3
+    min_velocity: 0.0
+    velocity_increment: 1.0
+    y_max_curv: 3.0
+    step_size: 0.1
+    validation_marg: 0.1

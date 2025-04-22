@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>tod_communication_interface</name>
+  <version>0.0.0</version>
+  <description>General Service Interface Implementation between Operator and Vehicle
+  </description>
+  <maintainer email="niklas.krauss@tum.de">niklas krauss</maintainer>
+  <license>LGPLv3</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>tod_network_monitoring_msgs</depend>
+  <depend>tod_config_msgs</depend>
+  <depend>tod_network</depend>
+  <depend>tod_network_protocols</depend>
+  <depend>tod_network_monitoring</depend>
+  <depend>tod_helper</depend>
+  <depend>tod_core</depend>
+  <depend>rcl_interfaces</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

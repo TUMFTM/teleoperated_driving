@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<package format="3">
+<name>tod_helper</name>
+<version>1.0.0</version>
+<description>The tod_helper package</description>
+
+<maintainer email="feiler@ftm.mw.tum.de">Johannes Feiler</maintainer>
+
+<license>LGPLv3</license>
+
+<buildtool_depend>ament_cmake</buildtool_depend>
+
+<depend>std_msgs</depend>
+<depend>rclcpp</depend>
+<depend>tf2</depend>
+<depend>tf2_ros</depend>
+<depend>tf2_geometry_msgs</depend>
+<depend>sensor_msgs</depend>
+<depend>geometry_msgs</depend>
+<depend>visualization_msgs</depend>
+<depend>nav_msgs</depend>
+<depend>tod_automation_msgs</depend>
+<depend>tod_operator_msgs</depend>
+<depend>autoware_planning_msgs</depend>
+
+<test_depend>ament_lint_auto</test_depend>
+<test_depend>ament_cmake_gtest</test_depend>
+<test_depend>ament_cmake_clang_format</test_depend>
+<test_depend>ament_cmake_cpplint</test_depend>
+
+
+<export>
+    <build_type>ament_cmake</build_type>
+</export>
+</package>

@@ -1,0 +1,16 @@
+/**:
+  SensingInterfaceNode:
+    ros__parameters:
+      gnss_topic: "/rccar/sensor/fix"
+      imu_topic: "/hedge_imu"
+      odom_topic: "/vesc/odom"
+  ActuationInterfaceNode:
+    ros__parameters:
+      servo_min: 0.15
+      servo_zero: 0.4325
+      servo_max: 0.7385
+      vehicleID: "rc-car"
+      steering_wheel_topic: "/vesc/commands/servo/position"
+      engine_speed_topic: "/vesc/commands/motor/speed"
+      acceleration_topic: "/hedge_imu"
+      ackermann_command_topic: "/vesc/low_level/ackermann_cmd_mux/output"

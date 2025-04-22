@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<package format="3">
+    <name>tod_edgar_interface</name>
+    <version>1.0.0</version>
+    <description>A specified interface for the edgar platform</description>
+
+    <maintainer email="nils.gehrke@tum.de">Nils Gehrke</maintainer>
+    <maintainer email="tobias.kerbl@tum.de">Tobias Kerbl</maintainer>
+
+    <license>LGPLv3</license>
+
+    <buildtool_depend>ament_cmake</buildtool_depend>
+
+    <depend>rclcpp</depend>
+    <depend>sensor_msgs</depend>
+    <depend>tod_vehicle_msgs</depend>
+    <depend>nav_msgs</depend>
+    <depend>tum_edgar_can_msgs</depend>
+    <depend>tum_autoware_vehicle_msgs</depend>
+    <depend>tum_edgar_utils</depend>
+    <depend>autoware_auto_control_msgs</depend>
+    <depend>autoware_auto_vehicle_msgs</depend>
+    <depend>tod_generic_interface</depend>
+    <depend>tod_core</depend>
+
+    <export>
+        <build_type>ament_cmake</build_type>
+    </export>
+</package>

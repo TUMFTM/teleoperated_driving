@@ -1,0 +1,67 @@
+# will be loaded and looked up by node that publishes transform tree
+
+# base_footprint is on ground at CoM position, but on middle axis laterally
+Transform1:
+  from: "base_footprint"
+  to: "rt3003"
+  translation_x_y_z: [0.0, 0.0000, 0.2000]
+  rotation_yaw_pitch_roll: [0.000000, 0.000000, 0.0]
+
+Transform2:
+  from: "base_footprint"
+  to: "fl_color_front"
+  translation_x_y_z: [2.333, 0.905, 0.910] # x = 2033 (kl. Plattform)
+  rotation_yaw_pitch_roll: [-0.2618, 0.0, 0.0]
+
+Transform3: # only sensormodule front left
+  from: "base_footprint"
+  to: "fl_color_side"
+  translation_x_y_z: [2.260, 0.978, 0.855] # x = 1960
+  rotation_yaw_pitch_roll: [1.8326, 0.0, 0.00]
+
+Transform4:
+  from: "base_footprint"
+  to: "fr_color_front"
+  translation_x_y_z: [2.333, -0.905, 0.910] # x = 2033
+  rotation_yaw_pitch_roll: [0.2618, 0.0, 0.00]
+
+Transform5:
+  from: "base_footprint"
+  to: "fr_color_side"
+  translation_x_y_z: [2.260, -0.978, 0.855] # x = 1960
+  rotation_yaw_pitch_roll: [-1.83260, 0.0, 0.00]
+
+Transform6:
+  from: "base_footprint"
+  to: "rl_color_front"
+  stream_on_connect: false
+  translation_x_y_z: [-2.333, 0.905, 0.910] # x = 2033
+  rotation_yaw_pitch_roll: [-2.8798, 0.0, 0.0]
+
+Transform7:
+  from: "base_footprint"
+  to: "rl_color_side"
+  stream_on_connect: false
+  translation_x_y_z: [-2.260, 0.978, 0.855]  # x = 1960
+  rotation_yaw_pitch_roll: [1.309, 0.0, 0.00]
+
+Transform8:
+  from: "base_footprint"
+  to: "rr_color_front"
+  stream_on_connect: false
+  translation_x_y_z: [-2.333, -0.905, 0.910] # x = 2033
+  rotation_yaw_pitch_roll: [2.8798, 0.0, 0.00]
+
+Transform9:
+  from: "base_footprint"
+  to: "rr_color_side"
+  stream_on_connect: false
+  translation_x_y_z: [-2.260, -0.978, 0.855] # x = 1960
+  rotation_yaw_pitch_roll: [-1.309, 0.0, 0.00]
+
+Transform10:
+  from: "base_footprint"
+  to: "inside"
+  stream_on_connect: false
+  translation_x_y_z: [0.0, 0.0, 0] 
+  rotation_yaw_pitch_roll: [0.0, 0.0, 0.0]

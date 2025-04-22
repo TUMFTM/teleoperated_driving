@@ -1,0 +1,112 @@
+status_topic: /operator/statemachine/output/operator_status
+# Port range operator to vehicle: 50000 - 59999
+senders:
+  - name: TrajectoryGuidancePathSender
+    protocol_strategy: "udp"
+    topic: "to_vehicle/path"
+    topic_type: "tod_trajectory_guidance_msgs/msg/Path"
+    ip: "127.0.0.1"
+    port: 50000
+    sending_control_modes: [0, 1, 2, 3, 4, 5]
+  - name: PrimaryControlCommandSender
+    protocol_strategy: "udp"
+    topic: "to_vehicle/primary_control_cmd"
+    topic_type: "tod_vehicle_msgs/msg/PrimaryControlCmd"
+    ip: "127.0.0.1"
+    port: 50001
+    sending_control_modes: [0, 1, 2, 3, 4, 5]
+  - name: SecondaryControlCommandSender
+    protocol_strategy: "udp"
+    topic: "to_vehicle/secondary_control_cmd"
+    topic_type: "tod_vehicle_msgs/msg/SecondaryControlCmd"
+    ip: "127.0.0.1"
+    port: 50002
+    sending_control_modes: [0, 1, 2, 3, 4, 5]
+  - name: OperatorStatusSender
+    protocol_strategy: "udp"
+    topic: "to_vehicle/operator_status"
+    topic_type: "tod_status_msgs/msg/Status"
+    send_always: True
+    ip: "127.0.0.1"
+    port: 50003
+    sending_control_modes: [0, 1, 2, 3, 4, 5, 99]
+  - name: TrajectoryGuidanceControlCmdSender
+    protocol_strategy: "udp"
+    topic: "to_vehicle/trajectory_guidance_control_cmd"
+    topic_type: "tod_trajectory_guidance_msgs/msg/TrajectoryGuidanceControl"
+    ip: "127.0.0.1"
+    port: 50004
+    sending_control_modes: [0, 1, 2, 3, 4, 5, 99]
+
+# Port range vehicle to operator: 60000 - 65535
+receivers:
+  - name: OdomReceiver
+    protocol_strategy: "udp"
+    topic: "from_vehicle/odom"
+    topic_type: "nav_msgs/msg/Odometry"
+    port: 60000
+  - name: ObjectListReceiver
+    protocol_strategy: "udp"
+    topic: "from_vehicle/object_list"
+    topic_type: "tod_automation_msgs/msg/PredictedObjects"
+    port: 60001
+  - name: NetworkMetricsReceiver
+    protocol_strategy: "udp"
+    topic: "from_vehicle/network_metrics"
+    topic_type: "tod_network_monitoring_msgs/msg/NetworkMetrics"
+    port: 60002
+  - name: NavSatFixReceiver
+    protocol_strategy: "udp"
+    topic: "from_vehicle/fix"
+    topic_type: "sensor_msgs/msg/NavSatFix"
+    port: 60003
+  - name: VehicleStatusReceiver
+    protocol_strategy: "udp"
+    topic: "from_vehicle/vehicle_status"
+    topic_type: "tod_status_msgs/msg/Status"
+    port: 60004
+    sending_control_modes: [0, 1, 2, 3, 4, 5]
+  - name: TrajectoryGuidanceStateReceiver
+    protocol_strategy: "udp"
+    topic: "from_vehicle/trajectory_guidance_state"
+    topic_type: "tod_trajectory_guidance_msgs/msg/TrajectoryGuidanceState"
+    port: 60005
+    sending_control_modes: [0, 1, 2, 3, 4, 5]
+  - name: PrimaryVehicleDataReceiver
+    protocol_strategy: "udp"
+    topic: "from_vehicle/primary_vehicle_state"
+    topic_type: "tod_vehicle_msgs/msg/PrimaryVehicleState"
+    port: 60006
+    sending_control_modes: [0, 1, 2, 3, 4, 5]
+  - name: SecondaryVehicleDataReceiver
+    protocol_strategy: "udp"
+    topic: "from_vehicle/secondary_vehicle_state"
+    topic_type: "tod_vehicle_msgs/msg/SecondaryVehicleState"
+    port: 60007
+    sending_control_modes: [0, 1, 2, 3, 4, 5]
+  - name: PointcloudReceiver
+    protocol_strategy: "udp"
+    topic: "from_vehicle/pointcloud_compressed"
+    topic_type: "tod_vehicle_msgs/msg/CompressedPointCloud"
+    port: 60008
+    sending_control_modes: [0, 1, 2, 3, 4, 5]
+  - name: TrajectoryReceiver
+    protocol_strategy: "udp"
+    topic: "from_vehicle/trajectory"
+    topic_type: "tod_automation_msgs/msg/Trajectory"
+    ip: "127.0.0.1"
+    port: 60009
+    sending_control_modes: [0, 1, 2, 3, 4, 5]
+  - name: AutomationStateReceiver
+    protocol_strategy: "udp"
+    topic: "from_vehicle/automation_status"
+    topic_type: "tod_automation_msgs/msg/VehicleAutomationState"
+    ip: "127.0.0.1"
+    port: 60010
+    sending_control_modes: [0, 1, 2, 3, 4, 5]
+  - name: TrajectoryGuidanceValidationTrajectoryReceiver
+    protocol_strategy: "udp"
+    topic: "from_vehicle/validation_trajectory"
+    topic_type: "tod_trajectory_guidance_msgs/msg/Trajectory"
+    port: 60011
+    sending_control_modes: [0, 1, 2, 3, 4, 5]

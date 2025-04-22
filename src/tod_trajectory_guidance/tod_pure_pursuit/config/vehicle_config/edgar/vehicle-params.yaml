@@ -1,0 +1,13 @@
+mass: 2284.0 # Zulassungsbescheinigung 13.2.
+yaw_inertia: 2000.0 # default
+distance_front_axle: 1.5357 # very hard guess
+distance_rear_axle: 1.5883 # very hard guess
+width_edge_to_edge: 2.252 # VW-Homepage
+track_width: 1.700 # hard guess
+cornering_force_front: 200000.0 # default
+cornering_force_rear: 200000.0 # default
+maximum_road_wheel_angle: 0.611 # same as autoware uses
+maximum_steering_wheel_angle: 9.42 # same as autoware uses
+height: 1.907 # Zulassungsbescheinigung 7.
+distance_front_bumper: 2.4877 # very hard guess + VW-Homepage
+distance_rear_bumper: 2.4853 # very hard guess + VW-Homepage

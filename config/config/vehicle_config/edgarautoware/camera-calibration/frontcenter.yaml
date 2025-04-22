@@ -1,0 +1,20 @@
+image_width: 1920
+image_height: 1200
+camera_name: frontcenter
+camera_matrix:
+  rows: 3
+  cols: 3
+  data: [ 1059.09612, 0.,  955.30586, 0.,  1060.51659, 602.83022, 0., 0., 1. ]
+camera_model: plumb_bob
+distortion_coefficients:
+  rows: 1
+  cols: 5
+  data: [-0.166276, 0.083647, 0.00061, 0.000415, 0.000000]
+rectification_matrix:
+  rows: 3
+  cols: 3
+  data: [ 1., 0., 0., 0.,  1.,  0., 0.,  0.,  1. ]
+projection_matrix:
+  rows: 3
+  cols: 4
+  data: [ 981.48041, 0., 956.51754, 0., 0., 1008.4176, 603.31724, 0., 0., 0., 1., 0. ]

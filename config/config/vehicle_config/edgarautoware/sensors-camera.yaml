@@ -1,0 +1,50 @@
+camera0:
+  name: /frontleft
+  is_front_facing: true
+  is_fisheye: false
+  project_on: false
+  scalings: [0p250, 0p500, 1p000]
+  transition_bitrates: [300, 650, 6000]
+
+camera1:
+  name: /frontcenter
+  is_front_facing: true
+  is_fisheye: false
+  project_on: false
+  scalings: [0p250, 0p500, 1p000]
+  transition_bitrates: [200, 450, 5000]
+
+camera2:
+  name: /frontright
+  is_front_facing: true
+  is_fisheye: false
+  project_on: false
+  scalings: [0p250, 0p500, 1p000]
+  transition_bitrates: [300, 650, 6000]
+
+camera3:
+  name: /rearleft
+  is_front_facing: false
+  is_fisheye: false
+  project_on: false
+  scalings: [0p250, 0p500, 1p000]
+  transition_bitrates: [300, 650, 6000]
+
+camera4:
+  name: /rearcenter
+  is_front_facing: false
+  is_fisheye: false
+  project_on: false
+  scalings: [0p250, 0p500, 1p000]
+  transition_bitrates: [200, 450, 6000]
+  
+camera5:
+  name: /rearright
+  is_front_facing: false
+  is_fisheye: false
+  project_on: false
+  scalings: [0p250, 0p500, 1p000]
+  transition_bitrates: [300, 650, 6000]
+
+camera_topics_namespace: /edgar/sensor/camera/basler
+camera_image_name: /image_resized

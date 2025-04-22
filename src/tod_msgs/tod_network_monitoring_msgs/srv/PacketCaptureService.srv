@@ -1,0 +1,3 @@
+bool set_capture_mode   # 0 = inactive, 1 = active
+---
+bool is_active          # 0 = inactive, 1 = active

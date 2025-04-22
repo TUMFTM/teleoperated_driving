@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>tod_dummy</name>
+  <version>0.0.0</version>
+  <description>TODO: Package description</description>
+  <maintainer email="tobias.kerbl@tum.de">tobias</maintainer>
+  <license>LGPLv3</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>tod_status_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>autoware_auto_planning_msgs</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
+

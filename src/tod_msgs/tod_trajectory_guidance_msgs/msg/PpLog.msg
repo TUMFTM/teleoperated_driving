@@ -1,0 +1,5 @@
+float64 time_error_to_first_pose
+float64 time_error_to_closest_pose
+float64 pose_error
+int32 closest_wp
+int32 next_wp

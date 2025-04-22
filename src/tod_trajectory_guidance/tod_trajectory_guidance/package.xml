@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>tod_trajectory_guidance</name>
+  <version>0.0.0</version>
+  <description>Package for Trajectory Guidance</description>
+  <maintainer email="tobias.kerbl@tum.de">Tobias Kerbl</maintainer>
+  <maintainer email="nijinshan.karunainayagam@tum.de">Nijinshan Karunainayagam</maintainer>
+  <maintainer email="niklas.krauss@tum.de">Nijinshan Karunainayagam</maintainer>
+
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>tf2</depend>
+  <depend>tf2_geometry_msgs</depend>
+  <depend>tod_trajectory_guidance_msgs</depend>
+  <depend>tod_status_msgs</depend>
+  <depend>tod_vehicle_msgs</depend>
+  <depend>tod_operator_msgs</depend>
+  <depend>tod_safety_msgs</depend>
+  <depend>tod_core</depend>
+  
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <exec_depend>ros2launch</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

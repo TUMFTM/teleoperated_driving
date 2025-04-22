@@ -1,0 +1,14 @@
+/**:
+  topic_monitor:
+    ros__parameters:
+      warning_factor: 0.75                                            # at which timeout the warning status should be issues
+      topic_names: ['/vehicle/network/data/from_operator/operator_status']   #, 'input/another']
+      topics: 
+        /vehicle/network/data/from_operator/operator_status:
+          type: 'tod_status_msgs/Status'
+          timeout: 1000                                               # timeout in ms
+          control_modes: [0, 3, 99]                                   # control modes in which this topic should be monitored (see tod_status_msgs/Status)
+        # input/another:
+        #   type: 'std_msgs/String'
+        #   timeout: 800
+        #   control_modes: [0]

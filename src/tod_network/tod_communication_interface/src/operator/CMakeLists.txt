@@ -1,0 +1,24 @@
+set(TARGETS ${TARGETS} NetworkMonitorServiceForwarder)
+add_executable(NetworkMonitorServiceForwarder network_monitor_service_forwarder.cpp)
+ament_target_dependencies(NetworkMonitorServiceForwarder PUBLIC rclcpp tod_network_monitoring_msgs tod_config_msgs rcl_interfaces tod_network tod_network_protocols)
+target_include_directories(NetworkMonitorServiceForwarder PRIVATE ${tod_network_monitoring_msgs_INCLUDE_DIRS} ${tod_config_msgs_INCLUDE_DIRS} ${tod_network_INCLUDE_DIRS} ${tod_core_INCLUDE_DIRS})
+
+set(TARGETS ${TARGETS} PacketCaptureServiceForwarder)
+add_executable(PacketCaptureServiceForwarder packet_capture_service_forwarder.cpp)
+ament_target_dependencies(PacketCaptureServiceForwarder PUBLIC rclcpp tod_network_monitoring_msgs tod_config_msgs rcl_interfaces tod_network tod_network_protocols)
+target_include_directories(PacketCaptureServiceForwarder PRIVATE ${tod_network_monitoring_msgs_INCLUDE_DIRS} ${tod_config_msgs_INCLUDE_DIRS} ${tod_network_INCLUDE_DIRS} ${tod_core_INCLUDE_DIRS})
+
+set(TARGETS ${TARGETS} VideoConfigServiceForwarder)
+add_executable(VideoConfigServiceForwarder video_config_service_forwarder.cpp)
+ament_target_dependencies(VideoConfigServiceForwarder PUBLIC rclcpp tod_network_monitoring_msgs tod_config_msgs rcl_interfaces tod_network tod_network_protocols)
+target_include_directories(VideoConfigServiceForwarder PRIVATE ${tod_network_monitoring_msgs_INCLUDE_DIRS} ${tod_config_msgs_INCLUDE_DIRS} ${tod_network_INCLUDE_DIRS} ${tod_core_INCLUDE_DIRS})
+
+set(TARGETS ${TARGETS} VideoParamServiceForwarder)
+add_executable(VideoParamServiceForwarder video_param_service_forwarder.cpp)
+ament_target_dependencies(VideoParamServiceForwarder PUBLIC rclcpp tod_network_monitoring_msgs tod_config_msgs rcl_interfaces tod_network tod_network_protocols)
+target_include_directories(VideoParamServiceForwarder PRIVATE ${tod_network_monitoring_msgs_INCLUDE_DIRS} ${tod_config_msgs_INCLUDE_DIRS} ${tod_network_INCLUDE_DIRS} ${tod_core_INCLUDE_DIRS})
+
+
+install(TARGETS ${TARGETS}
+        DESTINATION lib/${PROJECT_NAME}
+     )

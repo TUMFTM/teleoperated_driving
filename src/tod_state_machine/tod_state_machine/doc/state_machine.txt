@@ -1,0 +1,32 @@
+' made with plantuml https://plantuml.com/de/starting
+
+@startuml
+
+' states:
+state idle
+    state idle : do/connect_to_vehicle
+state choice_ip_valid <<choice>>
+state choice_connection_true <<choice>>
+state uplink
+    state uplink : do/operator_chooses_control_mode
+    state uplink : do/operator_chooses_input_device
+    state uplink : do/operator_chooses_video_rate_mode
+state teleoperation
+    state teleoperation : do/stop_teleoperation
+    state teleoperation : do/disconnect_from_vehicle
+state choice_stop_disconnect <<choice>>
+
+' connections and triggers
+[*] --> idle
+idle -down-> choice_ip_valid : CONNECT_CLICKED
+choice_ip_valid --> choice_connection_true : [ip_addr_format == valid]
+choice_ip_valid --> idle : [ip_addr_format == invalid]
+choice_connection_true --> uplink : [reached_vehicle == true]
+choice_connection_true --> idle : [reached_vehicle == false]
+uplink --> teleoperation : START_CLICKED
+uplink --> idle : DISCONNECT_CLICKED
+teleoperation --> choice_stop_disconnect : STOP_CLICKED or\nDISCONNECT_CLICKED
+choice_stop_disconnect --> uplink : STOP_CLICKED
+choice_stop_disconnect --> idle : DISCONNECT_CLICKED
+
+@enduml

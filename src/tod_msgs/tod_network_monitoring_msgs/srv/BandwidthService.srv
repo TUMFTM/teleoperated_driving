@@ -1,0 +1,5 @@
+string hostname
+bool test_vehicle_upload # if test should be executed in a reverse direction (iperf3 -R)
+---
+int64 bitrate_mbps
+int64 transferred_bytes

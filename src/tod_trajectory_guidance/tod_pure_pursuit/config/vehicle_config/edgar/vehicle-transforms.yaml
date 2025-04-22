@@ -1,0 +1,47 @@
+Transform1:
+  from: "base_footprint"
+  to: "rear_axle_footprint"
+  translation_x_y_z: [-1.5883, 0.0, 0.338]
+  rotation_yaw_pitch_roll: [0.0, 0.0, 0.0]
+
+Transform2:
+  from: "rear_axle_footprint"
+  to: "frontleft"
+  translation_x_y_z: [2.175, 0.585, 1.705]
+  rotation_yaw_pitch_roll: [-0.698, 0.0, -1.8]
+
+Transform3:
+  from: "rear_axle_footprint"
+  to: "frontcenter"
+  translation_x_y_z: [2.193, 0.0, 1.705]
+  rotation_yaw_pitch_roll: [-1.571, 0.0, -1.75]
+
+Transform4:
+  from: "rear_axle_footprint"
+  to: "frontright"
+  translation_x_y_z: [2.175, -0.585, 1.705]
+  rotation_yaw_pitch_roll: [-2.443, 0.0, -1.8]
+
+Transform5:
+  from: "rear_axle_footprint"
+  to: "rearleft"
+  translation_x_y_z: [0.2, 0.585, 1.705]
+  rotation_yaw_pitch_roll: [0.55, 0.0, -1.8]
+
+Transform6:
+  from: "rear_axle_footprint"
+  to: "rearcenter"
+  translation_x_y_z: [0.2, 0.0, 1.705]
+  rotation_yaw_pitch_roll: [1.571, 0.0, -1.75]
+
+Transform7:
+  from: "rear_axle_footprint"
+  to: "rearright"
+  translation_x_y_z: [0.2, -0.585, 1.705]
+  rotation_yaw_pitch_roll: [2.521, 0.0, -1.8]
+
+Transform8:
+  from: "base_footprint"
+  to: "steering_wheel_base"
+  translation_x_y_z: [0.5, 0.2, 1.25]
+  rotation_yaw_pitch_roll: [0.0, 0.15, 0.0]

@@ -1,0 +1,303 @@
+## tod_vehicle_interface ##
+tod_edgar_interface:
+  # vehicle
+  - from: /vehicle/interface/actuation/to_actuation/primary_control_cmd
+    to: /vehicle/safety/output/primary_control_cmd
+  - from: /vehicle/interface/actuation/to_actuation/secondary_control_cmd
+    to: /vehicle/safety/output/secondary_control_cmd
+
+tod_edgarautoware_interface:
+  # vehicle
+  - from: /vehicle/interface/actuation/to_actuation/primary_control_cmd
+    to: /vehicle/safety/output/primary_control_cmd
+  - from: /vehicle/interface/actuation/to_actuation/secondary_control_cmd
+    to: /vehicle/safety/output/secondary_control_cmd
+  
+tod_rc-car_interface:
+  # vehicle
+  - from: /vehicle/interface/actuation/to_actuation/secondary_control_cmd
+    to: /vehicle/network/data/from_operator/secondary_control_cmd
+
+tod_vehicle_sim:
+  # vehicle
+  - from: /vehicle/interface/input/vehicle_status
+    to: /vehicle/statemachine/output/vehicle_status
+  - from: /vehicle/interface/actuation/to_actuation/primary_control_cmd
+    to: /vehicle/safety/output/primary_control_cmd
+  - from: /vehicle/interface/actuation/to_actuation/secondary_control_cmd
+    to: /vehicle/safety/output/secondary_control_cmd
+
+## tod_state_machine ##    
+tod_state_machine:
+  # vehicle
+  - from: /vehicle/statemachine/input/safety_driver_status
+    to: /vehicle/interface/actuation/from_actuation/safety_driver_status
+  - from: /vehicle/statemachine/input/operator_status
+    to: /vehicle/network/data/from_operator/operator_status
+  # operator
+  - from: /operator/statemachine/input/vehicle_status
+    to: /operator/network/data/from_vehicle/vehicle_status
+  - from: /operator/statemachine/input/button_status
+    to: /operator/interface/manager/output/button_status
+  
+## tod_common ##
+tod_transform:
+  # vehicle
+  - from: /vehicle/transform/input/odom
+    to: /vehicle/interface/sensing/from_sensing/odom
+  # operator
+  - from: /operator/transform/input/odom
+    to: /operator/network/data/from_vehicle/odom
+
+## tod_logging ##
+
+## tod_monitoring
+tod_network_monitoring:
+  # vehicle
+  - from: /vehicle/monitoring/output/network_metrics
+    to: /vehicle/network/data/to_operator/network_metrics
+tod_topic_monitoring:
+  # vehicle
+  - from: /vehicle/monitoring/input/status
+    to: /vehicle/statemachine/output/vehicle_status
+
+## tod_safety ##
+tod_safety_gate:
+  # vehicle
+  - from: /vehicle/safety/input/topic_monitoring_status
+    to: /vehicle/monitoring/output/topic_monitoring_status
+  - from: /vehicle/safety/input/status
+    to: /vehicle/statemachine/output/vehicle_status
+  - from: /vehicle/safety/input/primary_control_cmd
+    to: /vehicle/direct_control/output/primary_control_cmd
+  - from: /vehicle/safety/input/secondary_control_cmd
+    to: /vehicle/network/data/from_operator/secondary_control_cmd
+
+## tod_network ##
+tod_rtsp:
+  # vehicle
+  - from: /vehicle/network/video/input/vehicle_status
+    to: /vehicle/statemachine/output/vehicle_status
+  # operator
+  - from: /operator/network/video/input/operator_status
+    to: /operator/statemachine/output/operator_status
+
+tod_lidar:
+  # vehicle
+  - from: /vehicle/network/lidar/output/pointcloud_compressed
+    to: /vehicle/network/data/to_operator/pointcloud_compressed
+  # operator
+  - from: /operator/network/lidar/input/pointcloud_compressed
+    to:  /operator/network/data/from_vehicle/pointcloud_compressed
+  - from: /operator/network/lidar/output/pointcloud_decompressed
+    to:  /operator/network/lidar/pointcloud_decompressed
+
+tod_data_interface:
+  # vehicle
+  - from: /vehicle/network/data/to_operator/automation_state
+    to: /vehicle/interface/automation/from_automation/automation_state
+  - from: /vehicle/network/data/to_operator/fix
+    to: /vehicle/interface/sensing/from_sensing/fix
+  - from: /vehicle/network/data/to_operator/object_list
+    to: /vehicle/interface/automation/from_automation/predicted_objects
+  - from: /vehicle/network/data/to_operator/odom
+    to: /vehicle/interface/sensing/from_sensing/odom
+  - from: /vehicle/network/data/to_operator/primary_vehicle_state
+    to: /vehicle/interface/actuation/from_actuation/primary_vehicle_state
+  - from: /vehicle/network/data/to_operator/secondary_vehicle_state
+    to: /vehicle/interface/actuation/from_actuation/secondary_vehicle_state
+  - from: /vehicle/network/data/to_operator/trajectory
+    to: /vehicle/interface/automation/from_automation/trajectory
+  - from: /vehicle/network/data/to_operator/vehicle_status
+    to: /vehicle/statemachine/output/vehicle_status
+  # operator
+  - from: /operator/network/data/to_vehicle/operator_status
+    to: /operator/statemachine/output/operator_status
+
+tod_communication_interface:
+  # vehicle
+  - from: /vehicle/network/config/input/vehicle_status
+    to: /vehicle/statemachine/output/vehicle_status
+  - from: /vehicle/network/config/from_operator/set_video_config 
+    to: /vehicle/network/video/VehicleRtspServer/set_video_config
+  - from: /vehicle/network/config/from_operator/set_capture_status
+    to: /vehicle/monitoring/packet_logger/set_capture_status
+  - from: /vehicle/network/config/from_operator/set_monitoring_status
+    to: /vehicle/monitoring/network_monitor/set_monitoring_status
+  # operator
+  - from: /operator/network/config/input/operator_status
+    to: /operator/statemachine/output/operator_status
+
+## tod_operator_interface ##
+tod_visual: 
+  # operator
+  ## visual
+  ### odom
+  - from: /operator/interface/visual/input/odom
+    to: /operator/network/data/from_vehicle/odom
+  ### video
+  - from: /operator/interface/visual/input/front_center/image
+    to: /operator/network/video/frontcenter/image
+  - from: /operator/interface/visual/input/front_center/cam_info
+    to: /operator/network/video/frontcenter/video_info
+  - from: /operator/interface/visual/input/front_left/image
+    to: /operator/network/video/frontleft/image
+  - from: /operator/interface/visual/input/front_left/cam_info
+    to: /operator/network/video/frontleft/video_info
+  - from: /operator/interface/visual/input/front_right/image
+    to: /operator/network/video/frontright/image
+  - from: /operator/interface/visual/input/front_right/cam_info
+    to: /operator/network/video/frontright/video_info
+  - from: /operator/interface/visual/input/rear_center/image
+    to: /operator/network/video/rearcenter/image
+  - from: /operator/interface/visual/input/rear_center/cam_info
+    to: /operator/network/video/rearcenter/video_info
+  - from: /operator/interface/visual/input/rear_left/image
+    to: /operator/network/video/rearleft/image
+  - from: /operator/interface/visual/input/rear_left/cam_info
+    to: /operator/network/video/rearleft/video_info
+  - from: /operator/interface/visual/input/rear_right/image
+    to: /operator/network/video/rearright/image
+  - from: /operator/interface/visual/input/rear_right/cam_info
+    to: /operator/network/video/rearright/video_info
+  ### pointcloud
+  - from: /operator/interface/visual/input/pointcloud
+    to: /operator/network/lidar/pointcloud_decompressed
+  ### object_list
+  - from: /operator/interface/visual/input/predicted_objects
+    to: /operator/network/data/from_vehicle/object_list
+  ### trajectory
+  - from: /operator/interface/visual/input/trajectory
+    to: /operator/network/data/from_vehicle/trajectory
+  ### automation status
+  - from: /operator/interface/visual/input/automation_status
+    to: /operator/network/data/from_vehicle/automation_status
+  ### vehicle state
+  - from: /operator/interface/visual/input/primary_vehicle_state
+    to: /operator/network/data/from_vehicle/primary_vehicle_state
+  - from: /operator/interface/visual/input/secondary_vehicle_state
+    to: /operator/network/data/from_vehicle/secondary_vehicle_state
+  ### input_devices
+  - from: /operator/interface/visual/input/joystick
+    to: /operator/input_devices/output/joystick
+  ### operator status
+  - from: /operator/interface/visual/input/tod_status
+    to: /operator/statemachine/output/operator_status
+  ### network metrics
+  - from: /operator/interface/visual/input/network_metrics
+    to: /operator/monitoring/output/network_metrics
+  ### direct_control
+  - from: /operator/interface/visual/input/primary_control_command
+    to: /operator/network/data/to_vehicle/primary_control_cmd
+  - from: /operator/interface/visual/input/secondary_control_command
+    to: /operator/network/data/to_vehicle/secondary_control_cmd
+  ### trajectory_guidance
+  - from: /operator/interface/visual/input/trajectory_guidance/trajectory_guidance_state
+    to: /operator/network/data/from_vehicle/trajectory_guidance_state
+  - from: /operator/interface/visual/input/trajectory_guidance/validation_trajectory
+    to: /operator/network/data/from_vehicle/validation_trajectory
+  ## manager
+  - from: /operator/interface/manager/input/tod_status
+    to: /operator/statemachine/output/operator_status
+  - from: /operator/interface/manager/input/network_metrics
+    to: /operator/network/data/from_vehicle/network_metrics
+  ## video_manager
+  - from: /operator/interface/video_manager/input/tod_status
+    to: /operator/statemachine/output/operator_status
+
+## tod_perception ##
+tod_projection:
+  # operator
+  # from network
+  - from: /operator/projection/input/secondary_vehicle_state
+    to:  /operator/network/data/from_vehicle/secondary_vehicle_state
+  - from: /operator/projection/input/primary_vehicle_state
+    to:  /operator/network/data/from_vehicle/primary_vehicle_state
+  # to visual
+  - from: /operator/projection/output/vehicle_lane_front_left
+    to:  /operator/interface/visual/input/driving_lane_front_left
+  - from: /operator/projection/output/vehicle_lane_front_right
+    to:  /operator/interface/visual/input/driving_lane_front_right
+  - from: /operator/projection/output/vehicle_lane_rear_left
+    to:  /operator/interface/visual/input/driving_lane_rear_left
+  - from: /operator/projection/output/vehicle_lane_rear_right
+    to:  /operator/interface/visual/input/driving_lane_rear_right
+
+## tod_direct_control ##
+tod_command_forwarder:
+  # vehicle
+  - from: /vehicle/direct_control/input/vehicle_status
+    to: /vehicle/statemachine/output/vehicle_status
+  - from: /vehicle/direct_control/input/primary_control_cmd
+    to: /vehicle/network/data/from_operator/primary_control_cmd
+
+tod_command_creation:
+  # operator
+  - from: /operator/direct_control/input/operator_status
+    to: /operator/statemachine/output/operator_status
+  - from: /operator/direct_control/input/joystick
+    to: /operator/input_devices/output/joystick
+  - from: /operator/direct_control/output/primary_control_cmd
+    to: /operator/network/data/to_vehicle/primary_control_cmd
+  - from: /operator/direct_control/output/secondary_control_cmd
+    to: /operator/network/data/to_vehicle/secondary_control_cmd
+
+## tod_trajectory_guidance ##
+tod_trajectory_guidance:
+  # vehicle
+  - from: /vehicle/trajectory_guidance/input/vehicle_status
+    to: /vehicle/statemachine/output/vehicle_status
+  - from: /vehicle/trajectory_guidance/input/trajectory_guidance_control_cmd
+    to: /vehicle/network/data/from_operator/trajectory_guidance_control_cmd
+  - from: /vehicle/trajectory_guidance/input/path
+    to: /vehicle/network/data/from_operator/path
+  - from: /vehicle/trajectory_guidance/input/ptc_logging
+    to: /vehicle/trajectory_guidance/control/output/ptc_logging
+  #- from: /vehicle/trajectory_guidance/input/safety_status
+  #  to: TBD
+  - from: /vehicle/trajectory_guidance/output/trajectory_guidance_state
+    to: /vehicle/network/data/to_operator/trajectory_guidance_state
+  # operator
+  - from: /operator/trajectory_guidance/input/operator_status
+    to: /operator/statemachine/output/operator_status
+  - from: /operator/trajectory_guidance/input/odom
+    to: /operator/network/data/from_vehicle/odom
+  - from: /operator/trajectory_guidance/input/trajectory_guidance_state
+    to: /operator/network/data/from_vehicle/trajectory_guidance_state
+  - from: /operator/trajectory_guidance/input/validation_trajectory
+    to: /operator/network/data/from_vehicle/validation_trajectory
+  - from: /operator/trajectory_guidance/input/mouse_position_click
+    to: /operator/interface/visual/output/mouse_position_click
+  - from: /operator/trajectory_guidance/input/mouse_position_released
+    to: /operator/interface/visual/output/mouse_position_released
+  - from: /operator/trajectory_guidance/input/mouse_position_moved
+    to: /operator/interface/visual/output/mouse_position_moved
+  - from: /operator/trajectory_guidance/input/key_press
+    to: /operator/interface/visual/output/key_press
+  - from: /operator/trajectory_guidance/output/path_visualization
+    to: /operator/interface/visual/input/trajectory_guidance/path_visualization
+  - from: /operator/trajectory_guidance/output/path
+    to: /operator/network/data/to_vehicle/path
+  - from: /operator/trajectory_guidance/output/trajectory_guidance_control_cmd
+    to: /operator/network/data/to_vehicle/trajectory_guidance_control_cmd
+  - from: /operator/trajectory_guidance/output/path_control_points
+    to: /operator/interface/visual/input/trajectory_guidance/path_control_points
+  - from: /operator/trajectory_guidance/output/validation_trajectory
+    to: /operator/interface/visual/input/trajectory_guidance/validation_trajectory
+  
+tod_pure_pursuit:
+  # vehicle
+  ## pure_pursuit controller
+  - from: /vehicle/trajectory_guidance/control/input/vehicle_status
+    to: /vehicle/statemachine/output/vehicle_status
+  - from: /vehicle/trajectory_guidance/control/input/odom
+    to: /vehicle/interface/sensing/from_sensing/odom
+  - from: /vehicle/trajectory_guidance/control/input/trajectory
+    to: /vehicle/trajectory_guidance/output/trajectory
+  - from: /vehicle/trajectory_guidance/control/output/primary_control_cmd
+    to: /vehicle/interface/actuation/to_actuation/primary_control_cmd
+  ## pure_pursuit simulator
+  - from: /vehicle/trajectory_guidance/control/input/validation_trajectory
+    to: /vehicle/trajectory_guidance/output/validation_trajectory
+  - from: /vehicle/trajectory_guidance/control/output/validation_trajectory
+    to: /vehicle/network/data/to_operator/validation_trajectory

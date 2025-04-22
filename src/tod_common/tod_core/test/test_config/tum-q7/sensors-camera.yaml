@@ -1,0 +1,47 @@
+camera0:
+  name: /CameraFrontLeft
+  is_fisheye: false
+  project_on: false
+  scalings: [0p250, 0p500, 1p000]
+  transition_bitrates: [300, 650, 6000]
+
+camera1:
+  name: /CameraFrontCenter
+  is_fisheye: false
+  project_on: false
+  scalings: [0p250, 0p500, 1p000]
+  transition_bitrates: [200, 450, 5000]
+
+camera2:
+  name: /CameraFrontRight
+  is_fisheye: false
+  project_on: false
+  scalings: [0p250, 0p500, 1p000]
+  transition_bitrates: [300, 650, 6000]
+
+camera3:
+  name: /CameraTopViewLeft
+  is_fisheye: true
+  scalings: [0p250, 0p375, 0p500]
+  transition_bitrates: [150, 400, 3000]
+
+camera4:
+  name: /CameraTopViewFront
+  is_fisheye: true
+  scalings: [0p250, 0p375, 0p500]
+  transition_bitrates: [150, 400, 3000]
+
+camera5:
+  name: /CameraTopViewRight
+  is_fisheye: true
+  scalings: [0p250, 0p375, 0p500]
+  transition_bitrates: [150, 400, 3000]
+
+camera6:
+  name: /CameraTopViewRear
+  is_fisheye: true
+  scalings: [0p250, 0p375, 0p500]
+  transition_bitrates: [200, 400, 3000]
+
+camera_topics_namespace: /Vehicle/Video
+camera_image_name: /image_raw

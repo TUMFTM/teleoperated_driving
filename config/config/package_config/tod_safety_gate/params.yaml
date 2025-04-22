@@ -1,0 +1,6 @@
+/**:
+  safety_gate:
+    ros__parameters:
+      warning_velocity: 2.7778      # in m/s
+      max_deceleration: 3.5         # in m/s^2
+      timeout: 500                  # in ms

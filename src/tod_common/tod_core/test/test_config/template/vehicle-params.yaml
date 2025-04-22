@@ -1,0 +1,35 @@
+# Vehicle mass in kg
+mass: 1000.0
+
+# Yaw inertia of the vehicle in kilogram*meter^2
+yaw_inertia: 2000.0
+
+# Distance between CoM and front axle in meters
+distance_front_axle: 1.4
+
+# Distance between CoM and rear axle in meters
+distance_rear_axle: 1.6
+
+# Width from tips of side-mirrors in meters
+width_edge_to_edge: 2.0
+
+# Front cornering force in Newton
+cornering_force_front: 200000.0
+
+# Rear cornering force in Newton
+cornering_force_rear: 200000.0
+
+# Maximum road wheel angle in radians  
+maximum_road_wheel_angle: 0.6108
+
+# Maximum steering-wheel angle in radians
+maximum_steering_wheel_angle: 7.8538
+
+# Height of Vehicle
+height: 1.5
+
+# distance between CoM and front bumper
+distance_front_bumper: 2.0
+
+#distance between CoM and rear bumper
+distance_rear_bumper: 2.2

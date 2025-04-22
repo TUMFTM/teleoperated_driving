@@ -1,0 +1,3 @@
+string hostname
+---
+float32 latency

@@ -1,0 +1,71 @@
+Transform1:
+  from: "base_footprint"
+  to: "LidarFront"
+  translation_x_y_z: [2.578, 0.0, 0.504]
+  rotation_yaw_pitch_roll: [0.0, 0.0, 3.1415]
+
+Transform2:
+  from: "LidarFront"
+  to: "CameraFrontCenter"
+  translation_x_y_z: [-2.372, -0.000, -1.283]
+  rotation_yaw_pitch_roll: [1.5708, 0.015, 1.5708]
+
+Transform3:
+  from: "CameraFrontCenter"
+  to: "LidarTop"
+  translation_x_y_z: [0.0, -0.20, 0.0]
+  rotation_yaw_pitch_roll: [1.5708, -1.5708, 0.0]
+
+Transform4:
+  from: "LidarFront"
+  to: "CameraFrontLeft"
+  translation_x_y_z: [-2.372, -0.294, -1.283]
+  rotation_yaw_pitch_roll: [0.33, -0.05, 1.571]
+
+Transform5:
+  from: "LidarFront"
+  to: "CameraFrontRight"
+  translation_x_y_z: [-2.372, 0.289, -1.283]
+  rotation_yaw_pitch_roll: [2.8685, 0.0, 1.5708]
+
+Transform6:
+  from: "LidarFront"
+  to: "CameraTopViewFront"
+  translation_x_y_z: [0.055, 0.000, -0.0]
+  rotation_yaw_pitch_roll: [1.571, 0.045, 1.571]
+
+Transform7:
+  from: "LidarFront"
+  to: "CameraTopViewLeft"
+  translation_x_y_z: [-2.3, -0.901, -0.654]
+  rotation_yaw_pitch_roll: [0.0, 0.0, 1.571]
+
+Transform8:
+  from: "LidarFront"
+  to: "CameraTopViewRight"
+  translation_x_y_z: [-2.3, 0.900, -0.654]
+  rotation_yaw_pitch_roll: [-3.142, 0.0, 1.571]
+
+Transform9:
+  from: "LidarRear"
+  to: "CameraTopViewRear"
+  translation_x_y_z: [0.080, 0.000, 0.151]
+  rotation_yaw_pitch_roll: [1.571, 0.0, 1.571]
+
+Transform10:
+  from: "LidarRear"
+  to: "CameraRearCenter"
+  translation_x_y_z: [-0.850, 0.000, -0.870]
+  rotation_yaw_pitch_roll: [1.5708, 0.0, 1.5708]
+
+Transform11:
+  from: "base_footprint"
+  to: "LidarRear"
+  translation_x_y_z: [-2.896, 0.000, 0.664]
+  rotation_yaw_pitch_roll: [3.142, 0.0, 3.142]
+
+Transform12:
+  from: "base_footprint"
+  to: "rear_axle_footprint"
+  translation_x_y_z: [-1.556, 0.000, 0.0]
+  rotation_yaw_pitch_roll: [0.0, 0.0, 0.0]

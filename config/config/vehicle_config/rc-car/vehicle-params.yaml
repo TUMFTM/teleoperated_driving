@@ -1,0 +1,13 @@
+mass: 4.44
+yaw_inertia: 444.4
+distance_front_axle: 0.23
+distance_rear_axle: 0.10
+width_edge_to_edge: 0.45 # with 15 cm buffer
+track_width: 0.25
+cornering_force_front: 4444.4
+cornering_force_rear: 4444.4
+maximum_road_wheel_angle: 0.34
+maximum_steering_wheel_angle: 0.34
+height: 0.200
+distance_front_bumper: 0.415 # with 5 cm buffer
+distance_rear_bumper: 0.285 # with 5 cm buffer

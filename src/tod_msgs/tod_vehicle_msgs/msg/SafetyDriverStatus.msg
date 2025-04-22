@@ -1,0 +1,3 @@
+bool vehicle_emergency_stop_released
+bool vehicle_long_approved
+bool vehicle_lat_approved

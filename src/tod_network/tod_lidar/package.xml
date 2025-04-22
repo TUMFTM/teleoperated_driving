@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<package format="3">
+<name>tod_lidar</name>
+    <version>1.0.0</version>
+    <description>The tod_lidar package</description>
+
+    <maintainer email="niklas.krauss@tum.de">Niklas Krauss</maintainer>
+
+    <license>LGPLv3</license>
+
+    <buildtool_depend>ament_cmake</buildtool_depend>
+
+    <depend>rclcpp</depend>
+    <depend>rcpputils</depend>
+    <depend>tf2_ros</depend>
+    <depend>tf2_sensor_msgs</depend>
+    <depend>tf2_geometry_msgs</depend>
+    <depend>sensor_msgs</depend>
+    <depend>tod_vehicle_msgs</depend>
+    <depend>tod_core</depend>
+    <depend>libdraco-dev</depend>
+    <depend>pcl_conversions</depend>
+    <depend>pcl_ros</depend>
+    
+
+    <exec_depend>rosidl_default_runtime</exec_depend>
+    <member_of_group>rosidl_interface_packages</member_of_group>
+
+    <export>
+        <build_type>ament_cmake</build_type>
+    </export>
+
+</package>

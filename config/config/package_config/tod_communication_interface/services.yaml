@@ -1,0 +1,28 @@
+services:
+  NetworkMonitorService:
+    protocol: TCP
+    service_vehicle: from_operator/set_monitoring_status
+    service_operator: to_vehicle/set_monitoring_status
+    forwarder_port: 60300
+    listener_port: 60301
+
+  PacketCaptureService:
+    protocol: TCP
+    service_vehicle: from_operator/set_capture_status
+    service_operator: to_vehicle/set_capture_status
+    forwarder_port: 60400
+    listener_port: 60401
+
+  # VideoParamService:
+  #   protocol: TCP
+  #   service_vehicle: from_operator/video_param_service
+  #   service_operator: to_vehicle/video_param_service
+  #   forwarder_port: 60200
+  #   listener_port: 60201
+
+  VideoConfigService:
+    protocol: TCP
+    service_vehicle: from_operator/set_video_config
+    service_operator: to_vehicle/set_video_config
+    forwarder_port: 60100
+    listener_port: 60101

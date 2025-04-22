@@ -1,0 +1,30 @@
+/operator/monitoring:
+  network_tester:
+    ros__parameters:
+      update_time_interval: 0.1
+      ping_timeout: 4
+      iperf3_port: 5201
+      bandwidth_measurement_time: 5
+
+  network_monitor:
+    ros__parameters:
+      network_interface: "eth0"
+      update_timeout: 0.3
+      update_time_interval: 0.1
+
+  packet_logger:
+    ros__parameters:
+      network_interface: "eth0"
+      logging_directory: "/var/log/tod_network_monitoring"
+
+/vehicle/monitoring:
+  network_monitor:
+    ros__parameters:
+      network_interface: "eth_opt_0"
+      update_timeout: 0.3
+      update_time_interval: 0.1
+
+  packet_logger:
+    ros__parameters:
+      network_interface: "eth_opt_0"
+      logging_directory: "/var/log/tod_network_monitoring"

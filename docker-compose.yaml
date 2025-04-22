@@ -1,0 +1,263 @@
+services:
+  ###################################################################################
+  ###--- tod_base --Base----------------------------------------------------------###
+  ###################################################################################
+  tod_base:
+    # platform: linux/arm64/v8 # to build on ARM
+    image: ${DOCKER_REGISTRY}/tod_base:${DOCKER_TAG:?}
+    container_name: tod_base_${DOCKER_TAG:?}
+    build:
+      context: .
+      dockerfile: docker/dockerfile
+      args:
+        DOCKER_ROS_DISTRO: ${DOCKER_ROS_DISTRO:?}
+        DOCKER_ROS_DOMAIN_ID: ${DOCKER_ROS_DOMAIN_ID:?}
+        DOCKER_UID: ${DOCKER_UID:?}
+        DOCKER_GID: ${DOCKER_UID:?}
+        DOCKER_USERNAME: ${DOCKER_USERNAME:?}
+      target: tod_base
+    ###--- Open Interactive Shell
+    stdin_open: true
+    tty: true
+    ###--- Network
+    network_mode: host
+    environment:
+      - RMW_IMPLEMENTATION=${DOCKER_RMW_IMPLEMENTATION:?}
+      - CYCLONEDDS_URI=file:///home/${DOCKER_USERNAME:?}/wsp/config/dds/${DOCKER_CYCLONEDDS_CONFIG:?}.xml
+      - ROS_DOMAIN_ID=${DOCKER_ROS_DOMAIN_ID:?}
+    cap_add:
+      - NET_RAW
+    command: sleep infinity
+
+
+  ###################################################################################
+  ###--- tod_vehicle_base --Base-Extension----------------------------------------###
+  ###################################################################################
+  tod_vehicle_base:
+    extends: tod_base
+    image: ${DOCKER_REGISTRY}/tod_vehicle_base:${DOCKER_TAG:?}
+    container_name: tod_vehicle_base_${DOCKER_TAG:?}
+    build:
+      context: .
+      dockerfile: docker/dockerfile
+      target: tod_vehicle_base
+    volumes:
+      # Source Code
+      - ./src:/home/${DOCKER_USERNAME:?}/wsp/src:rw
+      # Colcon artifacts
+      - ./.dev_artifacts/build/:/home/${DOCKER_USERNAME:?}/wsp/build:rw
+      - ./.dev_artifacts/install/:/home/${DOCKER_USERNAME:?}/wsp/install:rw
+      - ./.dev_artifacts/log/:/home/${DOCKER_USERNAME:?}/wsp/log:rw
+      # vscode config
+      - ./.vscode/:/home/${DOCKER_USERNAME:?}/wsp/.vscode:rw
+
+
+  ###################################################################################
+  ###--- tod_operator_base --Base-Extension---------------------------------------###
+  ###################################################################################
+  tod_operator_base:
+    extends: tod_base
+    image: ${DOCKER_REGISTRY}/tod_operator_base:${DOCKER_TAG:?}
+    container_name: tod_operator_base_${DOCKER_TAG:?}
+    build:
+      context: .
+      dockerfile: docker/dockerfile
+      target: tod_operator_base
+    volumes:
+      # Source Code
+      - ./src:/home/${DOCKER_USERNAME:?}/wsp/src:rw
+      # Colcon artifacts
+      - ./.dev_artifacts/build/:/home/${DOCKER_USERNAME:?}/wsp/build:rw
+      - ./.dev_artifacts/install/:/home/${DOCKER_USERNAME:?}/wsp/install:rw
+      - ./.dev_artifacts/log/:/home/${DOCKER_USERNAME:?}/wsp/log:rw
+      # vscode config
+      - ./.vscode/:/home/${DOCKER_USERNAME:?}/wsp/.vscode:rw
+
+
+  ###################################################################################
+  ###--- tod_vehicle_builder --Builder--------------------------------------------###
+  ###################################################################################
+  tod_vehicle_builder:
+    extends: tod_base
+    image: ${DOCKER_REGISTRY}/tod_vehicle_builder:${DOCKER_TAG:?}
+    container_name: tod_vehicle_builder_${DOCKER_TAG:?}
+    build:
+      context: .
+      dockerfile: docker/dockerfile
+      target: tod_vehicle_builder
+      args:
+        VEHICLE_BUILD_ARGS: ${VEHICLE_BUILD_ARGS:?}
+
+
+  ###################################################################################
+  ###--- tod_operator_builder --Builder-------------------------------------------###
+  ###################################################################################
+  tod_operator_builder:
+    extends: tod_base
+    image: ${DOCKER_REGISTRY}/tod_operator_builder:${DOCKER_TAG:?}
+    container_name: tod_operator_builder_${DOCKER_TAG:?}
+    build:
+      context: .
+      dockerfile: docker/dockerfile
+      target: tod_operator_builder
+      args:
+        OPERATOR_BUILD_ARGS: ${OPERATOR_BUILD_ARGS:?}
+
+
+  ###################################################################################
+  ###--- tod_dev --Development----------------------------------------------------###
+  ###################################################################################
+  tod_dev:
+    extends: tod_base
+    image: ${DOCKER_REGISTRY}/tod_dev:${DOCKER_TAG:?}
+    container_name: tod_dev_${DOCKER_TAG:?}
+    build:
+      context: .
+      dockerfile: docker/dockerfile
+      target: tod_dev
+    volumes:
+      # Source code
+      - ./src:/home/${DOCKER_USERNAME:?}/wsp/src:rw
+      # Colcon artifacts
+      - ./.dev_artifacts/build/:/home/${DOCKER_USERNAME:?}/wsp/build:rw
+      - ./.dev_artifacts/install/:/home/${DOCKER_USERNAME:?}/wsp/install:rw
+      - ./.dev_artifacts/log/:/home/${DOCKER_USERNAME:?}/wsp/log:rw
+      - ./.dev_artifacts/data/:/home/${DOCKER_USERNAME:?}/wsp/data:rw
+      - ./.dev_artifacts/tools/:/home/${DOCKER_USERNAME:?}/wsp/tools:rw
+      # Repos
+      - ./dependencies.repos:/home/${DOCKER_USERNAME:?}/wsp/dependencies.repos
+      # Configs
+      - ./config:/home//${DOCKER_USERNAME:?}/wsp/config:rw
+      # VScode config
+      - ./.vscode/:/home/${DOCKER_USERNAME:?}/wsp/.vscode:rw
+      # Display output
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - $XAUTHORITY:/root/.Xauthority
+      # Shared memory
+      - /dev/shm:/dev/shm
+    environment:
+      # Display output
+      - DISPLAY=$DISPLAY
+      # - DISPLAY=host.docker.internal:0 # when using X11 forwarding to host
+      - XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR
+      - MESA_GL_VERSION_OVERRIDE=3.3
+      - XAUTHORITY=/run/user/1000/gdm/Xauthority
+      - LOAD_PCAN_DRIVERS=true
+    privileged: true
+  
+
+  ###################################################################################
+  ###--- tod_dev_gpu --Development------------------------------------------------###
+  ###################################################################################
+  tod_dev_gpu:
+    extends: tod_dev
+    container_name: tod_dev_gpu_${DOCKER_TAG:?}
+    environment:
+      - LIBGL_ALWAYS_SOFTWARE=1
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+
+  ###################################################################################
+  ###--- tod_vehicle --Deployment-------------------------------------------------###
+  ###################################################################################
+  tod_vehicle:
+    extends: tod_base
+    image: ${DOCKER_REGISTRY}/tod_vehicle:${DOCKER_TAG:?}
+    container_name: tod_vehicle_${DOCKER_TAG:?}
+    build:
+      context: .
+      dockerfile: docker/dockerfile
+      target: tod_vehicle
+      args:
+        VEHICLE_BUILD_ARGS: ${VEHICLE_BUILD_ARGS:?}
+    volumes:
+      # Shared Memory
+      - /dev/shm:/dev/shm
+      # DDS config
+      - ./config/dds:/home/${DOCKER_USERNAME:?}/wsp/config/dds:rw
+      # Software config
+      - ./config/config:/home/${DOCKER_USERNAME:?}/wsp/install/tod_launch/share/tod_launch/config:rw
+    environment:
+      - LOAD_PCAN_DRIVERS=false
+    command: ros2 launch tod_launch tod_vehicle.launch.py
+             mode:=${MODE:?}
+             vehicleID:=${VEHICLE_ID:?}
+             vehicleNetworkInterface:=eth_opt_0
+
+
+  ###################################################################################
+  ###--- tod_vehicle_gpu --Deployment---------------------------------------------###
+  ###################################################################################
+  tod_vehicle_gpu:
+    extends: tod_vehicle
+    container_name: tod_vehicle_gpu_${DOCKER_TAG:?}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+
+  ###################################################################################
+  ###--- tod_operator --Deployment------------------------------------------------###
+  ###################################################################################
+  tod_operator:
+    extends: tod_base
+    image: ${DOCKER_REGISTRY}/tod_operator:${DOCKER_TAG:?}
+    container_name: tod_operator_${DOCKER_TAG:?}
+    build:
+      context: .
+      dockerfile: docker/dockerfile
+      target: tod_operator
+      args:
+        OPERATOR_BUILD_ARGS: ${OPERATOR_BUILD_ARGS:?}
+    volumes:
+      # Display output
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - $XAUTHORITY:/root/.Xauthority
+      # Shared Memory
+      - /dev/shm:/dev/shm
+      # DDS config
+      - ./config/dds:/home/${DOCKER_USERNAME:?}/wsp/config/dds:rw
+      # Software config
+      - ./config/config:/home/${DOCKER_USERNAME:?}/wsp/install/tod_launch/share/tod_launch/config:rw
+    environment:
+      # Display output
+      - DISPLAY=$DISPLAY
+      - XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR
+      - MESA_GL_VERSION_OVERRIDE=3.3
+      - XAUTHORITY=/run/user/1000/gdm/Xauthority
+      - LOAD_PCAN_DRIVERS=true
+    privileged: true 
+    command: ros2 launch tod_launch tod_operator.launch.py
+             vehicleID:=${VEHICLE_ID:?}
+             operatorNetworkInterface:=tun0
+             
+
+  ###################################################################################
+  ###--- tod_operator_gpu --Deployment--------------------------------------------###
+  ###################################################################################
+  tod_operator_gpu:
+    extends: tod_operator
+    container_name: tod_operator_gpu_${DOCKER_TAG:?}
+    environment:
+      - LIBGL_ALWAYS_SOFTWARE=1
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

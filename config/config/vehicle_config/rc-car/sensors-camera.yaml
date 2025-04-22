@@ -1,0 +1,24 @@
+camera0:
+  name: /frontcenter
+  is_fisheye: false
+  project_on: true
+  scalings: [0p250, 0p500, 1p000]
+  transition_bitrates: [300, 650, 6000]
+
+camera1:
+  name: /rearcenter
+  is_fisheye: false
+  project_on: true
+  scalings: [0p250, 0p500, 1p000]
+  transition_bitrates: [300, 650, 6000]
+
+camera2:
+  name: /bev
+  is_fisheye: false
+  project_on: false
+  scalings: [0p250, 0p500, 1p000]
+  transition_bitrates: [300, 650, 6000]
+
+
+camera_topics_namespace: /rc_car/sensor/camera
+camera_image_name: /image

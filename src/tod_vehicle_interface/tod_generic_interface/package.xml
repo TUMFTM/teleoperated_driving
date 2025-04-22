@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="3">
+    <name>tod_generic_interface</name>
+    <version>1.0.0</version>
+    <description>A generic platform interface library</description>
+
+    <maintainer email="nils.gehrke@tum.de">Nils Gehrke</maintainer>
+
+    <license>LGPLv3</license>
+
+    <buildtool_depend>ament_cmake</buildtool_depend>
+
+    <depend>rclcpp</depend>
+    <depend>sensor_msgs</depend>
+    <depend>nav_msgs</depend>
+    <depend>tod_vehicle_msgs</depend>
+    <depend>tod_automation_msgs</depend>
+
+    <export>
+        <build_type>ament_cmake</build_type>
+    </export>
+</package>

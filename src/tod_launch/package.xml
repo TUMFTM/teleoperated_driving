@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="3">
+    <name>tod_launch</name>
+    <version>1.0.0</version>
+    <description>The tod_launch package</description>
+
+    <maintainer email="david.brecht@tum.de">David Brecht</maintainer>
+    <license>LGPLv3</license>
+
+    <buildtool_depend>ament_cmake</buildtool_depend>
+    <buildtool_depend>ament_cmake_python</buildtool_depend>
+
+    <exec_depend>ament_cmake_python</exec_depend>
+    <exec_depend>python3</exec_depend>
+
+    <export>
+        <build_type>ament_cmake</build_type>
+    </export>
+</package>

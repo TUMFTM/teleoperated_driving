@@ -1,0 +1,23 @@
+# name: expected to be used consistent in transform tree, topics, etc. Make sure to have "/" at the name beginning.
+# is_3D: true (expecting pointcloud), false (expecting laser scan)
+
+# OPTIONAL
+# construct_gridmap_from: true/false (only for 2D)
+# detect_on: true/false (only for 2D)
+# lidar_topics_namespace: /Vehicle/Lidar (default)
+# laser_scan_name: /scan (default)
+# pointcloud_name: /points (default)
+
+lidar0:
+  name: /LidarFront
+  is_3D: false
+  construct_gridmap_from: true
+  detect_on: true
+
+lidar1:
+  name: /LidarTop
+  is_3D: true
+
+lidar_topics_namespace: /Vehicle/Lidar
+laser_scan_name: /scan
+pointcloud_name: /points

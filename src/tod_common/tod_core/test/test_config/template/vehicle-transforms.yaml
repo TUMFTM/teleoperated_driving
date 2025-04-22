@@ -1,0 +1,20 @@
+# Will be loaded and looked up by node that publishes transform tree
+# base_footprint is on ground at CoM position, but on middle axis laterally
+
+Transform1:
+  from: "base_footprint"
+  to: "LidarFront"
+  translation_x_y_z: [2.5, 0.0, 0.5]
+  rotation_yaw_pitch_roll: [0.0, 0.0, 3.1415]
+
+Transform2:
+  from: "LidarFront"
+  to: "CameraFrontCenter"
+  translation_x_y_z: [-2.0, 0.000, -1.2]
+  rotation_yaw_pitch_roll: [1.5708, 0.0, 1.5708]
+
+Transform3:
+  from: "CameraFrontCenter"
+  to: "LidarTop"
+  translation_x_y_z: [0.0, -0.2, 0.0]
+  rotation_yaw_pitch_roll: [1.5708, -1.5708, 0.0]

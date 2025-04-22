@@ -1,0 +1,25 @@
+/**:
+  PointCloudDecoder:
+    ros__parameters:
+      target_frame: base_link
+
+  PointCloudEncoder:
+    ros__parameters:
+      target_frame: base_link
+      target_points: 100000
+      enable_logging: false
+      smooth_pointclouds: false
+      history_size: 3
+      exponential_decay_rate: 0.9
+      voxel_leaf_size: 0.45 #m
+      grid_size: 0.05 #m
+      crop_box_min_x: -15.0 #m
+      crop_box_min_y: -20.0
+      crop_box_min_z:  0.3
+      crop_box_max_x:  20.0
+      crop_box_max_y:  20.0
+      crop_box_max_z:  2.2
+      draco_encode_speed:  1 # determines settings for speed with speed / compression tradeoff
+      draco_decode_speed:  1
+      draco_quatization_position:  7 # Change if crop size increase (more bits for larger cropping)
+      draco_encode_method:  0 # 0 = KD Tree Compression or 2 = Sequential if encode speed >= 7 it will always use sequential 

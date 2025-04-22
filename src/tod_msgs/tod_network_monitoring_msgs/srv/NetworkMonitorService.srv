@@ -1,0 +1,4 @@
+string vehicle_ip_address
+bool set_monitor_mode   # 0 = inactive, 1 = active
+---
+bool is_active          # 0 = inactive, 1 = active

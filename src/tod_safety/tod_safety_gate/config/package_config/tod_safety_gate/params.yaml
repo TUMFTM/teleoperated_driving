@@ -1,0 +1,4 @@
+/**:
+  safety_gate:
+    ros__parameters:
+      warning_velocity: 2.7778      # in m/s

@@ -1,0 +1,37 @@
+/**:
+  SensingInterfaceNode:
+    ros__parameters:
+      gnss_topic: "/vehicle/sensor/fix"
+      imu_topic: "/vehicle/sensor/imu1"
+      odom_topic: "/localization/kinematic_state"
+  ActuationInterfaceNode:
+    ros__parameters:
+      kp: 2.0
+      ki: 0.0
+      max_steer_wheel: 9.42
+      wheel2tire_factor: 0.0648
+      # EDGAR interface topics
+      edgar_gateway_states_topic: "/edgar/can/gateway_states"
+      edgar_motion_topic: "/edgar/can/motion_vw"
+      # AW vehicle interface topics
+      aw_velocity_report_topic: "/vehicle/status/velocity_status"
+      aw_steering_report_topic: "/vehicle/status/steering_status"
+      aw_gear_report_topic: "/vehicle/status/gear_status"
+      aw_hazard_lights_report_topic: "/vehicle/status/hazard_lights_status"
+      aw_turn_indicators_report_topic: "/vehicle/status/turn_indicators_status"
+      tum_head_light_report_topic: "/vehicle/status/head_light_status"
+      tum_high_beam_report_topic: "/vehicle/status/high_beam_status"
+      tum_honk_report_topic: "/vehicle/status/honk_status"
+      tum_wiper_report_topic: "/vehicle/status/wiper_status"
+      # AW external interface topics
+      aw_gear_command_topic: "/external/selected/gear_cmd"
+      aw_ackermann_control_command_topic: "/external/selected/control_cmd"
+      aw_hazard_lights_command_topic: "/external/selected/hazard_lights_cmd"
+      aw_turn_indicators_command_topic: "/external/selected/turn_indicators_cmd"
+      aw_heartbeat_topic: "/external/selected/heartbeat"
+
+  AutomationInterfaceNode:
+    ros__parameters:
+      aw_vehicle_automation_state_topic: "/system/operation_mode/state"
+      aw_predicted_objects_topic: "/perception/object_recognition/objects"
+      aw_trajectory_topic: "/planning/scenario_planning/trajectory"

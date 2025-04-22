@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<package format="3">
+    <name>tod_pure_pursuit</name>
+    <version>0.0.0</version>
+    <description>The tod_path_tracking package</description>
+
+    <maintainer email="brecht@ftm.mw.tum.de">David Brecht</maintainer>
+    <maintainer email="krauss@ftm.mw.tum.de">David Brecht</maintainer>
+
+    <license>LGPLv3</license>
+
+    <depend>tod_trajectory_guidance_msgs</depend>
+    <depend>tod_status_msgs</depend>
+    <depend>tod_vehicle_msgs</depend>
+    <depend>tod_safety_msgs</depend>
+
+    <depend>ament_cmake</depend>
+    <depend>geometry_msgs</depend>
+    <depend>nav_msgs</depend>
+    <depend>rclcpp</depend>
+    <depend>tf2</depend>
+    <depend>tf2_ros</depend>
+    <depend>tf2_msgs</depend>
+
+    <depend>tod_core</depend>
+    <depend>rosidl_default_generators</depend>
+    <depend>builtin_interfaces</depend>
+    <depend>tf2_geometry_msgs</depend>
+
+    <member_of_group>rosidl_interface_packages</member_of_group>
+
+    <export>
+        <build_type>ament_cmake</build_type>
+    </export>
+
+</package>

@@ -1,0 +1,24 @@
+std_msgs/Header header
+
+uint8 WAITING_FOR_TRAJECTORY = 0
+uint8 EXECUTING_TRAJECTORY = 1
+uint8 EXECUTING_STOP_TRAJECTORY = 2
+uint8 VALIDATING_TRAJECTORY = 3
+
+# Event constants
+uint8 EVENT_NONE = 0
+uint8 TRAJECTORY_RECEIVED = 1
+uint8 EXECUTION_FINISHED = 2
+uint8 EXECUTION_CANCELED = 3
+uint8 RESET_TRIGGERED = 4
+uint8 WATCHDOG_TRIGGERED = 5
+uint8 START_TRAJECTORY = 6
+uint8 VELOCITY_UPDATE_RECEIVED = 7
+uint8 VELOCITY_UPDATE_REJECTED = 8
+uint8 TRAJECTORY_REJECTED = 9
+uint8 VALIDATED_TRAJECTORY_RECIEVED = 10
+
+# Current state and last event
+uint8 current_state
+uint8 last_event
+float32 target_velocity # m/s

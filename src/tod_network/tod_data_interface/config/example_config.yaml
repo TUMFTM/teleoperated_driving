@@ -1,0 +1,27 @@
+status_topic: tod_status_topic
+receivers:
+  - name: receiver_1
+    protocol_strategy: "udp"
+    topic: "/receiver_1_topic"
+    topic_type: "std_msgs/msg/Int32"
+    port: 60001
+  - name: receiver_2
+    protocol_strategy: "tcp"
+    topic: "/receiver_2_topic"
+    topic_type: "std_msgs/msg/Int32"
+    port: 80002
+senders:
+  - name: sender_1
+    protocol_strategy: "udp"
+    topic: "/sender_1_topic"
+    topic_type: "std_msgs/msg/Int32"
+    ip: "127.0.0.1"
+    port: 60001
+    sending_control_modes: [1, 2, 3]
+  - name: sender_2
+    protocol_strategy: "tcp"
+    topic: "/sender_2_topic"
+    topic_type: "std_msgs/msg/Int32"
+    ip: "127.0.0.1"
+    port: 80002
+    sending_control_modes: [1, 2, 3]

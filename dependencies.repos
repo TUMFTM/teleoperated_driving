@@ -1,0 +1,30 @@
+repositories: 
+    
+    # AW Repos
+    autoware/messages/autoware_auto_msgs:
+        type: git
+        url: https://github.com/tier4/autoware_auto_msgs.git
+        version: 624aae9feb142eb2a4e16069ed06bf4050ccc3ea
+
+    autoware/messages/tier4_autoware_msgs:
+        type: git
+        url: https://github.com/tier4/tier4_autoware_msgs
+        version: 12504f69041fb8c895ffb5625da63be2ea69da4b
+
+    autoware/messages/autoware_adapi_msgs:
+        type: git
+        url: https://github.com/autowarefoundation/autoware_adapi_msgs.git
+        version: 5e36db1826da3a50f5c2f05f000e5d9cbd897553
+
+    # required for tier4_control_msgs
+    autoware/messages/autoware_msgs:
+        type: git
+        url: https://github.com/autowarefoundation/autoware_msgs.git
+        version: f3ee114e1f3bf66a4df96d7dbfa209903c9cb75a
+
+    # External Repos
+    external/boost-ext/sml:
+        type: git
+        url: https://github.com/boost-ext/sml.git
+        version: cd3ef80206b71463de96d6b682cfdc99703ec147
+

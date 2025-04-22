@@ -1,0 +1,25 @@
+launch_parameters:
+  vehicleID: 'edgar'        # For choices see ./vehicle_config
+  mode:      'only_sim'     # Choice of {vehicle, only_sim}
+
+packages_to_launch:         # Note: vehicle interface is loaded automatically 
+  operator:                 # Packages that launch nodes on the operator side
+    tod_projection:               True  
+    tod_input_devices:            True  
+    tod_command_creation:         True    
+    tod_visual:                   True
+  vehicle:                  # Packages that launch nodes on the vehicle side
+    tod_command_forwarder:        True 
+    tod_pure_pursuit:             True
+    tod_safety_gate:              True
+    tod_topic_monitoring:         True
+  both:                     # Packages that launch nodes on both sides
+    tod_trajectory_guidance:      True
+    tod_communication_interface:  True
+    tod_state_machine:            True
+    tod_logger:                   True
+    tod_lidar:                    True
+    tod_rtsp:                     True
+    tod_data_interface:           True
+    tod_network_monitoring:       True
+    tod_transform:                True

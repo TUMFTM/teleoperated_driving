@@ -1,0 +1,19 @@
+lidar0:
+  name: /LidarFront
+  is_3D: false
+  construct_gridmap_from: true
+  detect_on: false
+
+lidar1:
+  name: /LidarRear
+  is_3D: false
+  construct_gridmap_from: false
+  detect_on: false
+
+lidar2:
+  name: /LidarTop
+  is_3D: true
+
+lidar_topics_namespace: /Vehicle/Lidar
+laser_scan_name: /scan
+pointcloud_name: /velodyne_points

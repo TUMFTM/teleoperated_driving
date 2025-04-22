@@ -1,0 +1,9 @@
+/**:
+  ros__parameters:
+    rear_axle_frame_id: "base_link"
+    check_trajectory_outdated: false
+    lookahead_ratio: 0.3
+    min_lookahead_distance: 2.0
+    ControlMode: 3
+    debug: false
+    simulation_step: 0.1    

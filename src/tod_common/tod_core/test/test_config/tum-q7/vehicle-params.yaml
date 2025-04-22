@@ -1,0 +1,13 @@
+mass: 2887.0
+yaw_inertia: 4700.0
+distance_front_axle: 1.446
+distance_rear_axle: 1.556
+width_edge_to_edge: 2.177
+track_width: 1.651
+cornering_force_front: 280666.0
+cornering_force_rear: 278903.0
+maximum_road_wheel_angle: 0.6108
+maximum_steering_wheel_angle: 7.8538
+height: 1.737
+distance_front_bumper: 2.408
+distance_rear_bumper: 2.681

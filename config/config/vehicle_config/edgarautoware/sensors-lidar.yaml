@@ -1,0 +1,6 @@
+lidar0:
+  name: /pointcloud
+
+lidar_topics_namespace: /sensing/lidar/concatenated  #/Vehicle/Lidar
+laser_scan_name: /pointcloud
+pointcloud_name: /pointcloud

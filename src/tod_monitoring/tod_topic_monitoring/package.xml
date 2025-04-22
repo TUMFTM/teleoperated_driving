@@ -1,0 +1,17 @@
+<package format="3">
+    <name>tod_topic_monitoring</name>
+    <version>1.0.0</version>
+    <description>the tod_topic_monitoring library</description>
+    <maintainer email="florian.pfab@tum.de">Florian Pfab</maintainer>
+    <license>Apache2.0</license>
+
+    <buildtool_depend>ament_cmake</buildtool_depend>
+
+    <depend>rclcpp</depend>
+    <depend>tod_status_msgs</depend>
+    <depend>tod_topic_monitoring_msgs</depend>
+  
+    <export>
+        <build_type>ament_cmake</build_type>
+    </export>
+</package>

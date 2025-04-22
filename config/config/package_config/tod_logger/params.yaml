@@ -1,0 +1,5 @@
+/TopicLogger:
+  ros__parameters:
+    logfile_suffix_arg: '_tod_log'
+    log_path:           './'
+    logger_namespace:   'both'

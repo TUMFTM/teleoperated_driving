@@ -1,0 +1,65 @@
+camera0:
+  vehicle_name: /color_front
+  operator_name: /fl_color_front
+  ip_offset: 17
+  is_fisheye: false
+  host: fl
+
+camera1:
+  vehicle_name: /color_side
+  operator_name: /fl_color_side
+  ip_offset: 17
+  is_fisheye: false
+  host: fl
+
+camera2:
+  vehicle_name: /color_front
+  operator_name: /fr_color_front
+  ip_offset: 19
+  is_fisheye: false
+  host: fr
+
+camera3:
+  vehicle_name: /color_side
+  operator_name: /fr_color_side
+  ip_offset: 19
+  is_fisheye: false
+  host: fr
+
+camera4:
+  vehicle_name: /color_front
+  operator_name: /rl_color_front
+  ip_offset: 18
+  is_fisheye: false
+  host: rl
+
+camera5:
+  vehicle_name: /color_side
+  operator_name: /rl_color_side
+  ip_offset: 18
+  is_fisheye: false
+  host: rl
+
+camera6:
+  vehicle_name: /color_front
+  operator_name: /rr_color_front
+  ip_offset: 20
+  is_fisheye: false
+  host: rr
+
+camera7:
+  vehicle_name: /color_side
+  operator_name: /rr_color_side
+  ip_offset: 20
+  is_fisheye: false
+  host: rr
+
+#camera8:
+#  name: /inside
+#  stream_on_connect: false
+#  ip_offset: 1
+#  is_fisheye: false
+#  host: none
+
+camera_topics_namespace: /sensor/camera/raw
+camera_image_name: /image

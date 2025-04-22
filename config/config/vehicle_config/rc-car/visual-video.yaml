@@ -1,0 +1,39 @@
+bev:
+  TransformComponent:
+    Translation: [0, 0, 0.005]
+    Rotation: [0, 0, 0]
+    Scale: [1, 1, 1]
+  VideoComponent:
+    ProjectionMode: 2
+    GroundPlaneRadiusMin: 5
+    SphereRadius: 20
+    SphereLongitudeMin: -3.1415
+    SphereLongitudeMax: 3.1415
+    SphereLatitudeMin: -1.5708
+    SphereLatitudeMax: 1.3
+frontcenter:
+  TransformComponent:
+    Translation: [0., 0., 0.]
+    Rotation: [0., 0., 0.]
+    Scale: [1., 1., 1.]
+  VideoComponent:
+    ProjectionMode: 2
+    GroundPlaneRadiusMin: 5
+    SphereRadius: 20
+    SphereLongitudeMin: -3.1415
+    SphereLongitudeMax: 3.1415
+    SphereLatitudeMin: -1.5708
+    SphereLatitudeMax: 1.3
+rearcenter:
+  TransformComponent:
+    Translation: [9.0, -7.0, 3.3]
+    Rotation: [0., 0., 0.]
+    Scale: [1., 1., 1.]
+  VideoComponent:
+    ProjectionMode: 0
+    GroundPlaneRadiusMin: 5
+    SphereRadius: 20
+    SphereLongitudeMin: -3.1415
+    SphereLongitudeMax: 3.1415
+    SphereLatitudeMin: -1.5708
+    SphereLatitudeMax: 1.0472
