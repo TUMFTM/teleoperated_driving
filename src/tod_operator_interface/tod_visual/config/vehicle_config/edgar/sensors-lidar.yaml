@@ -1,0 +1,9 @@
+lidar0:
+  name: /pointcloud
+  is_3D: true 
+  construct_gridmap_from: false
+  detect_on: false
+
+lidar_topics_namespace: /sensing/lidar/concatenated  #/Vehicle/Lidar
+laser_scan_name: /pointcloud
+pointcloud_name: /pointcloud

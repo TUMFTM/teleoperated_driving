@@ -1,0 +1,29 @@
+/**:
+  ros__parameters:
+    #for configuration start: roslaunch tod_input_devices tod_input_devices.launch ConfigMode:=true
+    type : "Usb" #Usb or Virtual
+
+    button_config:
+      IndicatorLeft: 0
+      IndicatorRight: 2
+      FlashLight: 1
+      FrontLight: 3
+      Honk: 9
+      IncreaseSpeed: 77
+      DecreaseSpeed: 66
+      IncreaseGear: 7
+      DecreaseGear: 5
+
+    axis_config:
+      Steering: 2
+      Throttle: 5
+      Brake: 0
+
+    input_device_has_separate_braking_axis: false #If False: AxisRange/Brake is ignored (see below)
+
+    invert_axis:
+      Steering: true 
+      Throttle: true
+      Brake: false
+
+    correction: ""

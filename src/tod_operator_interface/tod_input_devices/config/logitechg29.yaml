@@ -1,0 +1,35 @@
+/**:
+  ros__parameters:
+    #for configuration start: roslaunch tod_input_devices tod_input_devices.launch ConfigMode:=true
+    type : "Usb" #Usb or Virtual
+
+    button_config:
+      IndicatorLeft: 11                 #L3
+      IndicatorRight: 10                #R3
+      FlashLight: 24                    #PSLogo
+      FrontLight: 9                     #Option
+      Honk: 23                          #Enter
+      IncreaseSpeed: 19                 #+
+      DecreaseSpeed: 20                 #-
+      IncreaseGear: 4                   #Right pedal
+      DecreaseGear: 5                   #Left pedal
+
+    axis_config:
+      Steering: 0
+      Throttle: 2
+      Brake: 3
+
+    input_device_has_separate_braking_axis: true #If False: AxisRange/Brake is ignored (see below)
+
+    invert_axis:
+      Steering: true
+      Throttle: true
+      Brake: true
+
+    correction: "6,\
+      1,255,32767,32767,18000,18000,\
+      1,0,0,0,0,0,\
+      1,255,32767,32767,18000,18000,\
+      1,255,32767,32767,18000,18000,\
+      1,0,0,0,0,0,\
+      1,0,0,0,0,0"

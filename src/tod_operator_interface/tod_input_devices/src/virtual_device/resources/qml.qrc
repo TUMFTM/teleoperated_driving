@@ -1,0 +1,9 @@
+<!DOCTYPE RCC><RCC version="1.0">
+    <qresource>
+        <file>virtual_joystick.qml</file>
+    </qresource>
+    <qresource>
+        <file>images/background.png</file>
+        <file>images/stick.png</file>
+    </qresource>
+</RCC>
