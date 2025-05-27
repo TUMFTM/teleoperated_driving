@@ -12,11 +12,13 @@ tod_edgarautoware_interface:
     to: /vehicle/safety/output/primary_control_cmd
   - from: /vehicle/interface/actuation/to_actuation/secondary_control_cmd
     to: /vehicle/safety/output/secondary_control_cmd
-  
+    
 tod_rc-car_interface:
   # vehicle
+  - from: /vehicle/interface/actuation/to_actuation/primary_control_cmd
+    to: /vehicle/safety/output/primary_control_cmd
   - from: /vehicle/interface/actuation/to_actuation/secondary_control_cmd
-    to: /vehicle/network/data/from_operator/secondary_control_cmd
+    to: /vehicle/safety/output/secondary_control_cmd
 
 tod_vehicle_sim:
   # vehicle
@@ -68,8 +70,6 @@ tod_safety_gate:
     to: /vehicle/monitoring/output/topic_monitoring_status
   - from: /vehicle/safety/input/status
     to: /vehicle/statemachine/output/vehicle_status
-  - from: /vehicle/safety/input/primary_control_cmd
-    to: /vehicle/direct_control/output/primary_control_cmd
   - from: /vehicle/safety/input/secondary_control_cmd
     to: /vehicle/network/data/from_operator/secondary_control_cmd
 
@@ -230,6 +230,8 @@ tod_command_forwarder:
     to: /vehicle/statemachine/output/vehicle_status
   - from: /vehicle/direct_control/input/primary_control_cmd
     to: /vehicle/network/data/from_operator/primary_control_cmd
+  - from: /vehicle/direct_control/output/primary_control_cmd
+    to: /vehicle/safety/input/primary_control_cmd
 
 tod_command_creation:
   # operator
@@ -295,7 +297,7 @@ tod_pure_pursuit:
   - from: /vehicle/trajectory_guidance/control/input/trajectory
     to: /vehicle/trajectory_guidance/output/trajectory
   - from: /vehicle/trajectory_guidance/control/output/primary_control_cmd
-    to: /vehicle/interface/actuation/to_actuation/primary_control_cmd
+    to: /vehicle/safety/input/primary_control_cmd
   ## pure_pursuit simulator
   - from: /vehicle/trajectory_guidance/control/input/validation_trajectory
     to: /vehicle/trajectory_guidance/output/validation_trajectory
