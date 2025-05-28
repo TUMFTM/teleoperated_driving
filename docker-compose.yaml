@@ -123,7 +123,6 @@ services:
       - ./.dev_artifacts/install/:/home/${DOCKER_USERNAME:?}/wsp/install:rw
       - ./.dev_artifacts/log/:/home/${DOCKER_USERNAME:?}/wsp/log:rw
       - ./.dev_artifacts/data/:/home/${DOCKER_USERNAME:?}/wsp/data:rw
-      - ./.dev_artifacts/tools/:/home/${DOCKER_USERNAME:?}/wsp/tools:rw
       # Repos
       - ./dependencies.repos:/home/${DOCKER_USERNAME:?}/wsp/dependencies.repos
       # Configs

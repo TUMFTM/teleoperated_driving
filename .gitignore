@@ -1,22 +1,19 @@
-wsp/\.catkin_tools/
-wsp/build/
-wsp/devel/
-wsp/logs
-*.user
-wsp/src/build-*
+.dev_artifacts/build/*
+.dev_artifacts/install/*
+.dev_artifacts/log/*
+.dev_artifacts/data/*
 
+build/*
+install/*
+log/*
+data/*
+src/external/*
+.cache/* 
 
-*.workspace
+*.mcap
+*.txt
 
-*.code-workspace
-
-wsp/src/.vscode/
-
-wsp/install/
-
-wsp/resources
-
-wsp/.vscode/
-
-wsp/src/build/
-
+!.dev_artifacts/data/.gitkeep
+!.dev_artifacts/build/.gitkeep
+!.dev_artifacts/install/.gitkeep
+!.dev_artifacts/log/.gitkeep

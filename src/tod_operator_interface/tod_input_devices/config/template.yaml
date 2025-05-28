@@ -1,0 +1,55 @@
+/**:
+  ros__parameters:
+    #for configuration start: roslaunch tod_input_devices tod_input_devices.launch ConfigMode:=true
+    type: "Virtual" #Usb oder Virtual oder Senso
+
+    button_config:
+      IndicatorLeft: 85 
+      IndicatorRight: 79
+      FlashLight: 70
+      FrontLight: 76
+      Honk: 32
+      IncreaseSpeed: 87
+      DecreaseSpeed: 83
+      IncreaseGear: 84
+      DecreaseGear: 71
+
+    axis_config:
+      Steering: 0
+      Throttle: 1
+      Brake: 2
+
+    input_device_has_separate_braking_axis: false #If False: AxisRange/Brake is ignored (see below)
+
+    invert_axis:
+      Steering: true 
+      Throttle: true
+      Brake: true
+
+    # Jostick Correction only supported for USB - Optional
+    # If no correction is applied, keep empty: correction: ""
+    correction: "10,\
+      1,255,32767,32767,18000,18000,\
+      1,0,0,0,0,0,\
+      1,255,32767,32767,18000,18000,\
+      1,0,0,0,0,0,\
+      1,0,0,0,0,0,\
+      1,255,32767,32767,18000,18000,\
+      1,0,0,0,0,0,\
+      1,0,0,0,0,0,\
+      1,0,0,0,0,0,\
+      1,0,0,0,0,0"
+
+
+    # Correction Parameters according to jscal
+    # n,\
+    # a,b,C0,C1,C2,C3\
+    # ....
+    #
+    # n:  Number of axis, should correspond to the following lines
+    # a:  Type 1 = "broken line"
+    # b:  Precision
+    # C0: Start of Deadzone
+    # C1: End of Deadzone
+    # C2: Negative Gradient
+    # C3: Positive Gradient

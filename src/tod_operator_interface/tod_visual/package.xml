@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<package format="3">
+    <name>tod_visual</name>
+    <version>1.0.0</version>
+    <description>The tod_visual package</description>
+    
+    <maintainer email="tobias.kerbl@tum.de">Tobias Kerbl</maintainer>
+    <maintainer email="niklas.krauss@tum.de">Niklas Krauss</maintainer>
+
+    <license>LGPLv3</license>
+    
+    <buildtool_depend>ament_cmake</buildtool_depend>
+    
+    <depend>rclcpp</depend>
+    <depend>nav_msgs</depend>
+    <depend>lanelet2_core</depend>
+    <depend>lanelet2_io</depend>
+    <depend>lanelet2_projection</depend>
+    <depend>pcl_ros</depend>
+    <depend>tf2_geometry_msgs</depend>
+    
+    <depend>lanelet2</depend>
+    
+    <depend>tod_helper</depend>
+    <depend>tod_core</depend>
+    <depend>tod_vehicle_msgs</depend>
+    <depend>tod_automation_msgs</depend>
+    <depend>tod_config_msgs</depend>
+    <depend>tod_network_monitoring_msgs</depend>
+    <depend>tod_trajectory_guidance_msgs</depend>
+    <depend>tod_status_msgs</depend>
+    <depend>tod_operator_msgs</depend>
+    <depend>cv_bridge</depend>
+
+    <export>
+        <build_type>ament_cmake</build_type>
+    </export>
+
+</package>

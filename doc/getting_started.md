@@ -10,7 +10,7 @@ After cloning the tod repository, follow these steps to setup the repository
 
 1. Setup repositories using *setup_repos.sh* script
    ```bash
-   cd tod
+   cd teleoperated_driving
    chmod +x setup_repos.sh && ./setup_repos.sh
    ```
 
@@ -19,23 +19,23 @@ After cloning the tod repository, follow these steps to setup the repository
 After setting up the repository, follow these steps to run and test the softoware:
 1. Build the deployment images
     ```bash
-    cd tod
+    cd teleoperated_driving
     docker compose build tod_vehicle tod_operator
     ```
-2. Setup the environment variables; open the ```.env``` file in the ```tod``` directory and adjust the variables, recommended changes for local testing:
+2. Setup the environment variables; open the ```.env``` file in the ```teleoperated_driving``` directory and adjust the variables, recommended changes for local testing:
      - ```DOCKER_CYCLONEDDS_CONFIG=unconfigured```
      - ```MODE=only_sim```
 3. Run the deploy docker
     ```bash
-    cd tod
+    cd teleoperated_driving
     docker compose up tod_vehicle tod_operator
     ```
 4. Test the teleoperation software
    1. Open the Manager Window
    2. Select localhost: ``IP Address Vehicle: 127.0.0.1`` and ``IP Address Operator: 127.0.0.1``
    3. Click ``Connect``
-   4. Select the teleoperation concept of your choice (``Direct Control`` or ``Waypoint Guidance``)
-   5. For ```Direct Control``` click ```Browse``` and select ``virual.yaml``
+   4. Select the teleoperation concept of your choice (``Direct Control`` or ``Trajectory Guidance``)
+   5. For ```Direct Control``` click ```Browse``` and select ``virtual.yaml``
    6. Click ``Start``
    7. Play around
       - ```Direct Control```
@@ -51,20 +51,20 @@ After setting up the repository, follow these steps to run and test the softowar
         - Send the trajectory to the vehicle with `Enter`
         - After receiving the simulated trajectory of the vehicle, a second trajectory in orange should be displayed in the visual window
         - Start the trajectory execution by validating the simulated trajectory using `V`
-        - If you want the vehicle to stop, press `space`
+        - If you want the vehicle to stop, press `Space`
 
-## Develop in the Software using Docker (Recommended)
+## Develop of the Software using Docker (Recommended)
 After setting up the repository, follow these steps to develop new software in the docker environment:
 1. Build the development image
     ```bash
-    cd tod
+    cd teleoperated_driving
     docker compose build tod_dev
     ```
-2. Setup the environment variables; open the ```.env``` file in the ```tod``` directory and adjust the variables, recommended changes for local testing:
+2. Setup the environment variables; open the ```.env``` file in the ```teleoperated_driving``` directory and adjust the variables, recommended changes for local testing:
    - ```DOCKER_CYCLONEDDS_CONFIG=unconfigured```
 3. Run the development docker
    ```bash
-    cd tod
+    cd teleoperated_driving
     docker compose up tod_dev
     ```
 4. Enter the development docker (if you are using VS Code you can skip this and continue with Step 5)
@@ -73,7 +73,7 @@ After setting up the repository, follow these steps to develop new software in t
    - Open VSCode and click ```Open a Remote Window``` (blue button on the bottom left)
    - Select ```Attach to Running Container``` and select ```tod_dev_latest```
 6. Setup the parameters, open the ```/home/tum/wsp/config/config/launch_setup.yaml``` file; recommended changes for local development:
-   - ```mode: ònly_sim```
+   - ```mode: only_sim```
 7. Build the software
     ```bash
      colcon build                                           # build everything
@@ -86,13 +86,13 @@ After setting up the repository, follow these steps to develop new software in t
     source install/setup.bash && ros2 launch tod_launch tod_vehicle.launch.py   # launch the vehicle side of the software
     source install/setup.bash && ros2 launch tod_launch tod_operator.launch.py  # launch the operator side of the software
     ```
-
+   
 ## Run the Software locally
 After setting up the repository, follow these steps to develop new software in the docker environment:
 1. Install all external dependencies (please refer to ```docker/dockerfile```to see all dependencies)
 2. Install all ros dependencies
    ```bash
-   cd tod
+   cd teleoperated_driving
    rosdep update && rosdep install --from-paths src --ignore-src --rosdistro humble -y
    ```
 3. Follow steps 6-7 from above
@@ -115,4 +115,3 @@ The launch mentioned above can be configured as required.
     * `only_sim`: Launches only the vehicle simulation node.
 
 Remember to build the tod_launch package after update any configs if you are not running in the docker environment (```colcon build --packages-select tod_launch```).
-

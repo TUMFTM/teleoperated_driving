@@ -1,0 +1,28 @@
+/**:
+  ros__parameters:
+    type: "Virtual" #Usb oder Virtual
+
+    button_config:
+      IndicatorLeft: 85                   #u
+      IndicatorRight: 79                  #o
+      FlashLight: 70                      #f
+      FrontLight: 76                      #l
+      Honk: 32                            #space
+      IncreaseSpeed: 87                   #w
+      DecreaseSpeed: 83                   #s
+      IncreaseGear: 84                    #t
+      DecreaseGear: 71                    #g
+
+    axis_config:
+      Steering: 0
+      Throttle: 1
+      Brake: 2
+
+    input_device_has_separate_braking_axis: false #If False: AxisRange/Brake is ignored (see below)
+
+    invert_axis:
+      Steering: false 
+      Throttle: false
+      Brake: false
+
+    correction: ""

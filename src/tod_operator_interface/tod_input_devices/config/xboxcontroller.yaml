@@ -1,0 +1,29 @@
+/**:
+  ros__parameters:
+    type: "Usb" #Usb oder Virtual
+
+    button_config:
+      IndicatorLeft: 6                   # Back (Left Thumb)      
+      IndicatorRight: 7                  # Start (Right Thumb)    
+      FlashLight: 8                      # Green XBOX (Right Thumb)
+      FrontLight: 3                      # Y (Right Thumb)        
+      Honk: 0                            # A (Right Thumb)
+      IncreaseSpeed: 5                   # RB (Right Index Finger)
+      DecreaseSpeed: 4                   # LB (Left Index Finger)
+
+      IncreaseGear: 1                    # B (Right Thumb)        
+      DecreaseGear: 2                    # X (Right Thumb)        
+
+    axis_config:
+      Steering: 0                        # Left Knob (Left Thumb)       
+      Throttle: 5                        # RT Lever (Right Index Finger)
+      Brake: 2                           # LT Lever (Left Index Finger) 
+
+    input_device_has_separate_braking_axis: true #If False: AxisRange/Brake is ignored (see below)
+
+    invert_axis:
+      Steering: true 
+      Throttle: false
+      Brake: false
+
+    correction: ""

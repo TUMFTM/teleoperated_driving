@@ -1,0 +1,30 @@
+/**:
+  ros__parameters:
+    #for configuration start: roslaunch tod_input_devices tod_input_devices.launch ConfigMode:=true
+    type: "Senso" #Usb oder Virtual
+
+    button_config:
+      IndicatorLeft: 0 
+      IndicatorRight: 1
+      FlashLight: 2
+      FrontLight: 3
+      Honk: 32
+      IncreaseSpeed: 16
+      DecreaseSpeed: 17
+      IncreaseGear: 23
+      DecreaseGear: 22
+
+    axis_config:
+      Steering: 0
+      Throttle: 1
+      Brake: 2
+
+    input_device_has_separate_braking_axis: true #If False: AxisRange/Brake is ignored (see below)
+
+    invert_axis:
+      Steering: false 
+      Throttle: false 
+      Brake: false
+    
+    correction: ""
+

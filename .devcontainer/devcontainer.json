@@ -1,0 +1,40 @@
+// See https://aka.ms/vscode-remote/devcontainer.json for format details.
+// Initial Version from https://github.com/athackst/vscode_ros2_workspace
+{
+    "name": "tod_devcontainer",
+    "dockerComposeFile": [
+        "../docker-compose.yaml"
+    ],
+    "service": "tod_dev",
+	"runServices": [
+		"tod_dev"
+	],
+    "shutdownAction": "stopCompose",
+    "workspaceFolder": "/home/tum/wsp",
+	"remoteUser": "tum",
+
+    // Set *default* container specific settings.json values on container create.
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"althack.ament-task-provider",
+				"DotJoshJohnson.xml",
+				"ms-azuretools.vscode-docker",
+				"jaehyunshim.vscode-ros2",
+				"ms-python.python",
+				"ms-vscode.cpptools",
+				"ms-vscode.cpptools-extension-pack",
+				"redhat.vscode-yaml",
+				"smilerobotics.urdf",
+				"streetsidesoftware.code-spell-checker",
+				"twxs.cmake",
+				"yzhang.markdown-all-in-one",
+                "deitry.colcon-helper",
+                "mhutchie.git-graph",
+                "wayou.vscode-todo-highlight",
+                "gruntfuggly.todo-tree",
+				"sanaajani.taskrunnercode"
+			]
+		}
+	}
+}

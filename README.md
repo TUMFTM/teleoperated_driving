@@ -30,12 +30,8 @@ The system architecture is depicted in the following graphic. The color of the p
 
 ## Getting Started
 
-[Getting Started](doc/getting_started.md)
-
-### Docker Workflow
-
-Detailed information about the docker workflow used for development and deployment can be found under [Docker Workflow](doc/docker_workflow.md).
+[Getting Started](doc/getting_started.md). Further information about the docker workflow used for development and deployment can be found under [Docker Workflow](doc/docker_workflow.md)
 
 ## Publication
 
-This work was submitted to IV 2025
+This work will be presented at IV 2025.

@@ -6,5 +6,5 @@
     enable_object_list: true
     enable_point_cloud: true
     enable_trajectory: true
-    map: "bakerlap_v1.1.1.osm" # should be placed in tod_visual/resources/maps folder, input empty string if no map should be used 
-    map_origin: [48.13912660925, 11.55603317499, 0.0] # lat, long, alt of map origin, use any point which is part of the map
+    map: "" # .osm in lanelet2 formar should be placed in tod_visual/resources/maps folder, input empty string if no map should be used 
+    map_origin: [48.13912660925, 11.55603317499, 0.0] # lat, long, alt of map origin, use any point which is part of the lanelet2 map

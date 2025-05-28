@@ -1,0 +1,17 @@
+{
+  "configurations": [
+    {
+      "includePath": [
+        "/opt/ros/humble/include/**",
+        "../**"
+      ],
+      "name": "ROS2",
+      "intelliSenseMode": "linux-gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "compileCommands": "build/compile_commands.json",
+      "cStandard": "c99",
+      "cppStandard": "c++17"
+    }
+  ],
+  "version": 4
+}

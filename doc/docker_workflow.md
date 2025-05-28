@@ -30,9 +30,6 @@ To make use of GPU acceleration NVIDIA drivers must be properly setup on the hos
    ```
 - Install NVIDIA Container Toolkit according to https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
 
-### Network Interface Configuration
-Make sure you have applied the following multicast settings to your machine's loopback interface: https://collab.dvb.bayern/display/TUMftm/ROS+2+Setup (section "ROS2 mit Docker"). Necessary to use the ``DOCKER_CYCLONEDDS_CONFIG=no_multicast`` in the ``.env`` file.
-
 ## Docker Structure
 All docker images are defined in ``/docker/dockerfile``. Services to build the images and run the containers are specified in the ``docker-compose.yaml`` and ``.env`` files. The available docker images are built in different stages and consecutively rely on each other:
 
@@ -59,16 +56,16 @@ The following table gives an overview how the stages, images aand services are c
 | Depolyment | tod_operator, tod_vehicle |tod_operator, tod_operator_gpu tod_vehicle, tod_vehicle_gpu | Only contain the binaries built in the Builder stage. |
 
 ## Setup 
-After cloning the tod repository (make sure the docker_compose branch is checked out) use the following steps to setup the docker workflow.
+After cloning the repository use the following steps to setup the docker workflow.
 
 1. Setup repositories using *setup_repos.sh* script (optionally use the VSCode task: *setup_repos*)
    ```bash
-   cd tod
+   cd teleoperated_driving
    chmod +x setup_repos.sh && ./setup_repos.sh
    ```
 2. Build specific image / all images (optionally use VSCode task: *build_dev*, *build_all*)
    ```bash
-   cd tod
+   cd teleoperated_driving
    docker compose build <image_name> # builds given image
    docker compose build # builds all images
    ```
@@ -116,9 +113,6 @@ Run arguments (e.g. vehicleID) for *tod_vehicle* and *tod_operator* are specifie
 
 ## Configuration via .env
 All necessary configurations to the docker compose workflow should be made centrally in the ``.env`` file. To do so, variables are defined in the ``.env`` file which are accessed in ``docker-compose.yaml`` to set image build arguments, container environment variables, commands and any other variables.
-
-   :warning: **By default ROS multicasting is enabled.** To avoid spamming all available network interfaces with ROS messages make sure to set  ``DOCKER_CYCLONEDDS_CONFIG=no_multicast`` in the ``.env`` file.
-   Please refer to the following setup when in the FTM network: https://collab.dvb.bayern/display/TUMftm/ROS+2+Setup (section "ROS2 mit Docker")
 
 **Workflow is based on:**
 - https://roboticseabass.com/2023/07/09/updated-guide-docker-and-ros2/

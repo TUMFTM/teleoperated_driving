@@ -1,0 +1,24 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "setup_repos",
+            "type": "shell",
+            "command": "chmod +x setup_repos.sh && ./setup_repos.sh"
+        }, 
+
+        {
+            "label": "build_dev",
+            "type": "shell",
+            "command": "docker compose build tod_dev"
+        },
+
+        {
+            "label": "build_all",
+            "type": "shell",
+            "command": "docker compose build"
+        }
+    ]
+}
