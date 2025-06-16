@@ -22,6 +22,21 @@ RUN groupadd --gid ${DOCKER_GID} ${DOCKER_USERNAME} \
     && rm -rf /var/lib/apt-get/lists/*
 ENV DOCKER_USERNAME=${DOCKER_USERNAME}
 
+###--- Remove old GPG key and update ---###
+RUN set -eux; \
+    rm -f /etc/apt/sources.list.d/ros2*.list \
+          /etc/apt/sources.list.d/ros2*.sources \
+          /usr/share/keyrings/ros-archive-keyring.gpg; \
+    apt-get update && \
+    apt-get install -y --no-install-recommends curl gnupg2 ca-certificates; \
+    curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
+      | gpg --dearmor -o /usr/share/keyrings/ros-archive-keyring.gpg; \
+    echo "deb [arch=$(dpkg --print-architecture) \
+        signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] \
+        http://packages.ros.org/ros2/ubuntu \
+        $(. /etc/os-release && echo $VERSION_CODENAME) main" \
+      > /etc/apt/sources.list.d/ros2.list
+
 ###--- Install basic apt packages -----------------------------------------------###
 RUN apt-get update && apt-get install -y --no-install-recommends \
     cmake \
@@ -96,17 +111,6 @@ RUN echo "source /entrypoint.sh" >> /home/${DOCKER_USERNAME}/.bashrc
 ###################################################################################
 FROM tod_base AS tod_operator_base
 
-###--- Install QT packages -----------------------------------------------------###
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    qtbase5-dev \
-    qt5-qmake \
-    qtbase5-dev-tools \
-    qt5-doc \
-    qml-module-qtquick2 \
-    qtpositioning5-dev \
-    qtlocation5-dev \
-    libqt5svg5-dev
-
 ###--- Install GLM, GLFW, GLEW and other packages ------------------------------###
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libglfw3-dev \
@@ -119,34 +123,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     fonts-liberation
 
 ###--- Install OPENCV ------------------------------###
-
-RUN apt-get update && apt-get install python3-opencv libopencv-dev ros-humble-cv-bridge -y
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3-opencv \
+    libopencv-dev \
+    ros-${ROS_DISTRO}-cv-bridge 
 
 ###--- Install OpenVR ----------------------------------------------------------###
 RUN add-apt-repository multiverse -y
-
-###--- Install Drivers for Sensowheel ------------------------------------------###
-RUN apt-get update && \
-    apt-get install -y wget build-essential gcc-12 g++-12 linux-headers-$(uname -r) libpopt-dev kmod && \
-    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 100 \
-                        --slave /usr/bin/g++ g++ /usr/bin/g++-12 && \
-    update-alternatives --set gcc /usr/bin/gcc-12 && \
-    mkdir -p /root/peak-linux-driver-8.18.0 && \
-    wget -q https://www.peak-system.com/fileadmin/media/linux/files/peak-linux-driver-8.18.0.tar.gz -O /root/peak-linux-driver-8.18.0/peak-linux-driver-8.18.0.tar.gz && \
-    cd /root/peak-linux-driver-8.18.0 && \
-    tar -xzf peak-linux-driver-8.18.0.tar.gz && \
-    cd peak-linux-driver-8.18.0 && \
-    make clean all && \
-    make install && \
-    update-alternatives --auto gcc && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /root/peak-linux-driver-8.18.0/peak-linux-driver-8.18.0.tar.gz && \
-    sed -i 's/^Info:/# Info:/' /etc/modprobe.d/pcan.conf
-
-RUN apt-get -y update && apt-get install -q -y --no-install-recommends \
-    steam-devices \
-    libvulkan1
-
 RUN cd /tmp && \
     git clone https://github.com/ValveSoftware/openvr.git openvr && \
     cd openvr && \
@@ -224,7 +207,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget
 
 ###--- Install Clang Tool apt packages for development -------------------------###
-
 RUN wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc \
     && add-apt-repository "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-18 main" \
     && apt-get update \
@@ -240,7 +222,6 @@ RUN wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | tee /etc/apt/trusted.
         clangd-18 \
         clang-tidy-18 \
     && rm -rf /var/lib/apt/lists/*
-
 
 ###--- Login with user ---------------------------------------------------------###
 USER ${DOCKER_USERNAME}
