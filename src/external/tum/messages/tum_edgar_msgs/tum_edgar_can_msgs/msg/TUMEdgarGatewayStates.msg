@@ -1,0 +1,10 @@
+std_msgs/Header header
+bool ignition
+bool hdm_state
+int8 thi_state
+int8 si_state
+int8 vi_state
+int8 gi_state
+int8 gw_state
+int8 ai_state
+int8 ebi_state

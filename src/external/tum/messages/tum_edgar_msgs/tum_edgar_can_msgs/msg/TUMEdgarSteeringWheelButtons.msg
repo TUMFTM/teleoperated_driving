@@ -1,0 +1,13 @@
+std_msgs/Header header
+int8 acc_timegap_phys
+bool acc_cancel_phys
+int8 button_first_pressed_phys
+int8 button_second_pressed_phys
+bool tip_down_phys
+bool tip_up_phys
+bool acc_main_switch_phys
+bool acc_set_button_phys
+bool acc_resume_button_phys
+bool acc_tip_down_phys
+bool acc_tip_up_phys
+bool acc_mode_phys
