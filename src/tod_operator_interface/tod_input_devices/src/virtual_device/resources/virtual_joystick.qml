@@ -1,10 +1,10 @@
-import QtQuick 2.1
+import QtQuick 2.15
 
 Rectangle {
     id: root
     width: joystick.width
     height: joystick.height
-    color: "transparent"
+    color: Qt.transparent
     signal userInput(double x, double y);
     
 

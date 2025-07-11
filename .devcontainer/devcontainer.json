@@ -34,7 +34,10 @@
                 "wayou.vscode-todo-highlight",
                 "gruntfuggly.todo-tree",
 				"sanaajani.taskrunnercode"
-			]
+			],
+			"settings": {
+				"remote.autoForwardPorts": false
+			}
 		}
 	}
 }

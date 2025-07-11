@@ -141,7 +141,7 @@ services:
       - XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR
       - MESA_GL_VERSION_OVERRIDE=3.3
       - XAUTHORITY=/run/user/1000/gdm/Xauthority
-      - LOAD_PCAN_DRIVERS=true
+      - LOAD_PCAN_DRIVERS=false
     privileged: true
   
 

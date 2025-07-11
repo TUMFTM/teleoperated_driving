@@ -111,6 +111,17 @@ RUN echo "source /entrypoint.sh" >> /home/${DOCKER_USERNAME}/.bashrc
 ###################################################################################
 FROM tod_base AS tod_operator_base
 
+###--- Install QT packages -----------------------------------------------------###
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    qtbase5-dev \
+    qt5-qmake \
+    qtbase5-dev-tools \
+    qt5-doc \
+    qml-module-qtquick2 \
+    qtpositioning5-dev \
+    qtlocation5-dev \
+    libqt5svg5-dev
+
 ###--- Install GLM, GLFW, GLEW and other packages ------------------------------###
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libglfw3-dev \

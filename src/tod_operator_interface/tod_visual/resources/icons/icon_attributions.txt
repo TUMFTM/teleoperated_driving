@@ -1,0 +1,25 @@
+Icon attribution:
+
+Car top view:
+<a href="https://www.flaticon.com/free-icons/car-care" title="car care icons">Car care icons created by cube29 - Flaticon</a>
+
+Car rear view:
+<a href="https://www.flaticon.com/free-icons/transportation" title="transportation icons">Transportation icons created by Roundicons Premium - Flaticon</a>
+
+Target icon:
+<a href="https://www.flaticon.com/free-icons/aim" title="aim icons">Aim icons created by Google - Flaticon</a>
+
+Plus icon:
+<a href="https://www.flaticon.com/free-icons/plus" title="plus icons">Plus icons created by Freepik - Flaticon</a>
+
+Minus icon:
+<a href="https://www.flaticon.com/free-icons/subtract" title="subtract icons">Subtract icons created by Angelo Troiano - Flaticon</a>
+
+Arrow icon:
+<a href="https://www.flaticon.com/free-icons/arrow" title="arrow icons">Arrow icons created by Freepik - Flaticon</a>
+
+Close icon:
+<a href="https://www.flaticon.com/free-icons/close" title="close icons">Close icons created by ariefstudio - Flaticon</a>
+
+Pencil icon:
+<a href="https://www.flaticon.com/free-icons/pencil" title="pencil icons">Pencil icons created by rukanicon - Flaticon</a>

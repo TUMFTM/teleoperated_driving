@@ -2,16 +2,7 @@
 .dev_artifacts/install/*
 .dev_artifacts/log/*
 .dev_artifacts/data/*
-
-build/*
-install/*
-log/*
-data/*
 src/external/*
-.cache/* 
-
-*.mcap
-*.txt
 
 !.dev_artifacts/data/.gitkeep
 !.dev_artifacts/build/.gitkeep

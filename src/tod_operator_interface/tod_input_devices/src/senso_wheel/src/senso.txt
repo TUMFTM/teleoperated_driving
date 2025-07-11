@@ -1,0 +1,101 @@
+
+_jsn.Buttons[28] : Acc Push
+
+	
+_jsn.Buttons[30] : Acc Pull
+
+
+_jsn.Buttons[24] : Acc Down
+
+
+_jsn.Buttons[26] : Acc Up
+
+
+_jsn.Buttons[5] : resetButton
+
+_jsn.Buttons[23]: paddel Right
+_jsn.Buttons[22]: paddel Left
+
+_jsn.Buttons[22]: paddel Left
+
+if (_jsn.Buttons[23] && !previousPaddleRight)
+	{
+		if (gang < 9)
+		{
+			gang++;
+		}
+		_jsn.Buttons[gang] = true;
+	}
+	previousPaddleRight = _jsn.Buttons[23];
+
+	if (_jsn.Buttons[22] && !previousPaddleLeft)
+	{
+		if (gang > 6)
+		{
+			gang--;
+		}
+		_jsn.Buttons[gang] = true;
+	}
+	previousPaddleLeft = _jsn.Buttons[22];
+
+	jsn = _jsn;
+	jsn.Buttons[18] = 0;
+	if (_jsn.Buttons[18] && !previousLeftWheelUp)
+	{
+		emit leftWheelUp();
+		jsn.Buttons[18] = 1;
+	}
+	previousLeftWheelUp = _jsn.Buttons[18];
+	jsn.Buttons[19] = 0;
+	if (_jsn.Buttons[19] && !previousLeftWheelDown)
+	{
+		emit leftWheelDown();
+		jsn.Buttons[19] = 1;
+	}
+	previousLeftWheelDown = _jsn.Buttons[19];
+
+	jsn.Buttons[16] = 0;
+	if (_jsn.Buttons[16] && !previousRightWheelUp)
+	{
+		jsn.Buttons[16] = 1;
+	}
+	previousRightWheelUp = _jsn.Buttons[16];
+
+	jsn.Buttons[17] = 0;
+	if (_jsn.Buttons[17] && !previousRightWheelDown)
+	{
+		jsn.Buttons[17] = 1;
+	}
+	previousRightWheelDown = _jsn.Buttons[17];
+
+        //Am Senso Wheel:
+    //0_BlinkerLeft
+    //1_BlinkerRight
+    //2_Fernlicht_Flash
+    //3_Fernlicht_an
+    //4_Hupe
+    //5_Reset Button
+    //6_GangP
+    //7_GangR
+    //8_GangN
+    //9_GangD
+    //10_Wiper Pull
+    //11_Wiper Tip Down
+    //12_Wiper button down
+    //13_Wiper button up
+    //14_ButtonRight
+    //15_ButtonLeft
+    //16_WheelRightUp
+    //17_WheelRightDown
+    //18_WheelLeftUp
+    //19_WheelLeftDown
+    //20_WheelLeftClick
+    //21_WheelRightClick
+    //22_PaddleLeft
+    //23_PaddleRight
+    //24_CruiseControlLeverDown
+    //25_CruiseControlLeverDownLong
+    //26_CruiseControlLeverUp
+    //27_CruiseControlLeverUpLong
+    //28_CruiseControlLeverPush
+    //29_CruiseControlLeverPushBack

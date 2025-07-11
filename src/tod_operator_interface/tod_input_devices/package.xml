@@ -12,6 +12,7 @@
   <depend>rclcpp</depend>
   <depend>tod_operator_msgs</depend>
   <depend>sensor_msgs</depend>
+  <depend>tod_status_msgs</depend>
 
   <exec_depend>rosidl_default_runtime</exec_depend>
   <exec_depend>ros2launch</exec_depend>
