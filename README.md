@@ -1,10 +1,10 @@
 # TUM FTM Teleoperated Driving Software
 
-[[_TOC_]]
+This is the repository of the TUM FTM Teleoperated Driving Software Stack. The stack is ROS2-based and tested on Ubuntu 22.04 with ROS Humble, only.
 
-This is the container repository of the TUM FTM Teleoperated Driving Software Stack. The stack is ROS2-based and tested on Ubuntu 22.04 with ROS Humble, only.
+![Alt](doc/figures/visual_abstract.png "overview")
 
-The ROS packages are grouped thematically in the following sub-repositories:
+The software stack is grouped thematically in the following packages:
 
 - tod_common
 - tod_direct_control
@@ -34,4 +34,4 @@ The system architecture is depicted in the following graphic. The color of the p
 
 ## Publication
 
-This work will be presented at IV 2025.
+Kerbl, Tobias, David Brecht, Nils Gehrke, Nijinshan Karunainayagam, Niklas Krauss, Florian Pfab, Richard Taupitz, Ines Trautmannsheimer, Xiyan Su, Maria-Magdalena Wolf and Frank Diermeyer. “TUM Teleoperation: Open Source Software for Remote Driving and Assistance of Automated Vehicles.” (2025), doi: https://doi.org/10.48550/arXiv.2506.13933.
