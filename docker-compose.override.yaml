@@ -1,0 +1,14 @@
+services:
+  tod_operator:
+    volumes:
+      - type: bind
+        source: "/dev/input"
+        target: /dev/input
+        bind:
+          create_host_path: false
+      - type: bind
+        source: "./src/tod_operator_interface/tod_input_devices/config/logitechg923.yaml"
+        target: /home/${DOCKER_USERNAME:?}/wsp/install/tod_input_devices/share/tod_input_devices/config/logitechg923.yaml
+        read_only: true
+        bind:
+          create_host_path: false

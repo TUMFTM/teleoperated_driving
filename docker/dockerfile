@@ -22,6 +22,12 @@ RUN groupadd --gid ${DOCKER_GID} ${DOCKER_USERNAME} \
     && rm -rf /var/lib/apt-get/lists/*
 ENV DOCKER_USERNAME=${DOCKER_USERNAME}
 
+###--- Use a nearby Ubuntu mirror for more reliable package downloads -----------###
+RUN sed -i \
+    -e 's#http://archive.ubuntu.com/ubuntu#http://mirrors.tuna.tsinghua.edu.cn/ubuntu#g' \
+    -e 's#http://security.ubuntu.com/ubuntu#http://mirrors.tuna.tsinghua.edu.cn/ubuntu#g' \
+    /etc/apt/sources.list
+
 ###--- Remove old GPG key and update ---###
 RUN set -eux; \
     rm -f /etc/apt/sources.list.d/ros2*.list \
@@ -29,11 +35,11 @@ RUN set -eux; \
           /usr/share/keyrings/ros-archive-keyring.gpg; \
     apt-get update && \
     apt-get install -y --no-install-recommends curl gnupg2 ca-certificates; \
-    curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
+    curl --retry 5 --retry-delay 2 -fsSL https://mirrors.tuna.tsinghua.edu.cn/rosdistro/ros.key \
       | gpg --dearmor -o /usr/share/keyrings/ros-archive-keyring.gpg; \
     echo "deb [arch=$(dpkg --print-architecture) \
         signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] \
-        http://packages.ros.org/ros2/ubuntu \
+        http://mirrors.tuna.tsinghua.edu.cn/ros2/ubuntu \
         $(. /etc/os-release && echo $VERSION_CODENAME) main" \
       > /etc/apt/sources.list.d/ros2.list
 
@@ -48,6 +54,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ###--- Install ROS packages -----------------------------------------------------###
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-${ROS_DISTRO}-rmw-cyclonedds-cpp
+
+###--- Improve network resilience for apt and rosdep ----------------------------###
+RUN printf '%s\n' \
+    'Acquire::Retries "5";' \
+    'Acquire::http::Timeout "60";' \
+    'Acquire::https::Timeout "60";' \
+    > /etc/apt/apt.conf.d/80network-retries \
+    && sed -i \
+        's#https://raw.githubusercontent.com/ros/rosdistro/master#https://mirrors.tuna.tsinghua.edu.cn/rosdistro#g' \
+        /etc/ros/rosdep/sources.list.d/20-default.list
+ENV ROSDISTRO_INDEX_URL=https://mirrors.tuna.tsinghua.edu.cn/rosdistro/index-v4.yaml
 
 ###--- Install GSTREAMER packages -----------------------------------------------###
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -83,7 +100,9 @@ WORKDIR /home/${DOCKER_USERNAME}/wsp
 ###--- Setup entrypoint --------------------------------------------------------###
 RUN chown -R ${DOCKER_UID}:${DOCKER_GID} /home/${DOCKER_USERNAME}/wsp
 COPY ./docker/entrypoint.sh /
-RUN ["chmod", "+x", "/entrypoint.sh"]
+COPY ./docker/colcon_retry.sh /usr/local/bin/colcon_retry
+COPY ./docker/rosdep_retry.sh /usr/local/bin/rosdep_retry
+RUN chmod +x /entrypoint.sh /usr/local/bin/colcon_retry /usr/local/bin/rosdep_retry
 ENTRYPOINT [ "/entrypoint.sh" ]
 
 
@@ -99,8 +118,7 @@ USER ${DOCKER_USERNAME}
 
 ###--- Install dependencies via rosdep -----------------------------------------###
 RUN --mount=type=bind,source=src,target=/home/${DOCKER_USERNAME}/wsp/src \
-    rosdep update \
-    && rosdep install --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} -y 
+    rosdep_retry ${ROS_DISTRO}
 
 ###--- Source entrypoint -------------------------------------------------------###
 RUN echo "source /entrypoint.sh" >> /home/${DOCKER_USERNAME}/.bashrc
@@ -142,17 +160,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ###--- Install OpenVR ----------------------------------------------------------###
 RUN add-apt-repository multiverse -y
 RUN cd /tmp && \
-    git clone https://github.com/ValveSoftware/openvr.git openvr && \
-    cd openvr && \
-    git checkout tags/v1.14.15 && \
+    curl --retry 5 --retry-all-errors --retry-delay 2 -fL \
+        https://codeload.github.com/ValveSoftware/openvr/tar.gz/refs/tags/v1.14.15 \
+        -o openvr-v1.14.15.tar.gz && \
+    tar -xzf openvr-v1.14.15.tar.gz && \
+    cd openvr-1.14.15 && \
     mkdir build && \
     cd build && \
     cmake .. && \
-    make -j32 && \
+    make -j2 && \
     sudo make install && \
     sudo ldconfig && \
     cd /tmp && \
-    rm -r openvr
+    rm -rf openvr-1.14.15 openvr-v1.14.15.tar.gz
 
 RUN apt-get update
 
@@ -162,8 +182,7 @@ USER ${DOCKER_USERNAME}
 ###--- Install dependencies via rosdep -----------------------------------------###
 WORKDIR /home/${DOCKER_USERNAME}/wsp
 RUN --mount=type=bind,source=src,target=/home/${DOCKER_USERNAME}/wsp/src \
-    rosdep update \
-    && rosdep install --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} -y
+    rosdep_retry ${ROS_DISTRO}
 
 ###--- Source entrypoint -------------------------------------------------------###
 RUN echo "source /entrypoint.sh" >> /home/${DOCKER_USERNAME}/.bashrc
@@ -180,7 +199,7 @@ WORKDIR /home/${DOCKER_USERNAME}/wsp
 RUN --mount=type=bind,source=src,target=/home/${DOCKER_USERNAME}/wsp/src \
     --mount=type=bind,source=config,target=/home/${DOCKER_USERNAME}/wsp/config \
     source /opt/ros/${ROS_DISTRO}/setup.bash \
-    && colcon build ${VEHICLE_BUILD_ARGS}
+    && colcon_retry vehicle ${VEHICLE_BUILD_ARGS}
 
 
 ###################################################################################
@@ -195,7 +214,7 @@ WORKDIR /home/${DOCKER_USERNAME}/wsp
 RUN --mount=type=bind,source=src,target=/home/${DOCKER_USERNAME}/wsp/src \
     --mount=type=bind,source=config,target=/home/${DOCKER_USERNAME}/wsp/config \
     source /opt/ros/${ROS_DISTRO}/setup.bash \
-    && colcon build ${OPERATOR_BUILD_ARGS}
+    && colcon_retry operator ${OPERATOR_BUILD_ARGS}
 
 
 ###################################################################################
