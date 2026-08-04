@@ -126,6 +126,7 @@ class Peanut01VideoDeploymentTest(unittest.TestCase):
         self.assertIn("latest_image_->data.size()", stream)
         self.assertNotIn("latest_image_->width * latest_image_->step", stream)
         self.assertIn("configured_output_dimensions", stream)
+        self.assertIn("kVideoDimensionAlignment = 2", stream)
         self.assertIn("set_scaling_caps", stream)
         self.assertIn("gst_caps_unref", stream)
 

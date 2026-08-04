@@ -16,6 +16,7 @@ using namespace tod_rtsp;
 
 namespace {
 constexpr int kMinimumVideoDimension = 16;
+constexpr int kVideoDimensionAlignment = 2;
 
 std::pair<int, int> configured_output_dimensions(const videoConfig &config) {
     std::string scaling = config.scaling_factor;
@@ -24,8 +25,8 @@ std::pair<int, int> configured_output_dimensions(const videoConfig &config) {
 
     int width = std::max(kMinimumVideoDimension, static_cast<int>(config.width * factor));
     int height = std::max(kMinimumVideoDimension, static_cast<int>(config.height * factor));
-    width -= width % 8;
-    height -= height % 8;
+    width -= width % kVideoDimensionAlignment;
+    height -= height % kVideoDimensionAlignment;
     return {width, height};
 }
 
@@ -187,7 +188,7 @@ bool RtspStream::update_config(videoConfig config){
     const int bottomCrop = config.offset_height;
     const int topCrop = fullHeight - config.height - config.offset_height;
 
-    // final scaling - round to integer and even pixel numbers multiple of 8
+    // H.264 4:2:0 output dimensions must be even.
     const auto [actual_width, actual_height] = configured_output_dimensions(config);
     // try to set values in gstreamer
     try {
