@@ -33,7 +33,7 @@ This avoids copying raw 6.2 MB images through a ROS domain bridge. The initial i
 - Target bitrate: 1500 Kbit/s.
 - RTSP port: 8554.
 - Camera projection: disabled for the first phase.
-- Camera calibration: generated from `/sensing/camera/camera1/camera_info` and stored under the Peanut01 vehicle configuration.
+- Camera calibration: the current `/sensing/camera/camera1/camera_info` reports zero-valued matrices, so store an explicit uncalibrated placeholder and keep projection disabled. It must not be presented as a measured calibration.
 - LiDAR/radar: disabled.
 
 The sensor ROS domain is configured through `TOD_RTSP_SENSOR_DOMAIN_ID` and defaults to the container's existing ROS domain when unset. Only the vehicle RTSP process receives the domain override.
