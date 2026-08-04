@@ -57,13 +57,13 @@ services:
         bind:
           create_host_path: false
     environment:
-      - G923_AUTOCENTER_STRENGTH=${G923_AUTOCENTER_STRENGTH:-30}
+      - G923_AUTOCENTER_STRENGTH=${G923_AUTOCENTER_STRENGTH:-80}
     command:
       - bash
       - -lc
       - >-
         python3 /opt/tod-tools/set_g923_autocenter.py
-        "$${G923_AUTOCENTER_STRENGTH:-30}" ||
+        "$${G923_AUTOCENTER_STRENGTH:-80}" ||
         { echo "WARNING: Autocenter unavailable; continuing"; exit 0; }
     restart: "no"
 
@@ -134,7 +134,7 @@ docker exec tod_operator_latest bash -lc '
 '
 
 if [[ -f work/set_g923_autocenter.py ]]; then
-  python3 work/set_g923_autocenter.py 30 || echo "WARNING: Could not apply G923 autocenter"
+  python3 work/set_g923_autocenter.py "${G923_AUTOCENTER_STRENGTH:-80}" || echo "WARNING: Could not apply G923 autocenter"
 fi
 
 echo "== current joystick topic sample =="

@@ -23,9 +23,10 @@ class G923PersistenceTests(unittest.TestCase):
         for config in (override, setup):
             self.assertIn("g923_autocenter:", config)
             self.assertIn("condition: service_completed_successfully", config)
-            self.assertIn("G923_AUTOCENTER_STRENGTH:-30", config)
+            self.assertIn("G923_AUTOCENTER_STRENGTH:-80", config)
             self.assertIn("set_g923_autocenter.py", config)
             self.assertIn("Autocenter unavailable; continuing", config)
+        self.assertIn('set_g923_autocenter.py "${G923_AUTOCENTER_STRENGTH:-80}"', setup)
         self.assertTrue(autocenter["privileged"])
         self.assertNotIn("devices", autocenter)
         self.assertTrue(
