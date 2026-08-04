@@ -38,11 +38,43 @@ fi
 
 cat > docker-compose.override.yaml <<'YAML'
 services:
-  tod_operator:
+  g923_autocenter:
+    image: ${DOCKER_REGISTRY}/tod_operator:${DOCKER_TAG:?}
+    container_name: g923_autocenter_${DOCKER_TAG:?}
+    user: "0:0"
+    network_mode: none
+    privileged: true
     volumes:
       - type: bind
-        source: "${INPUT_DEVICE:-/dev/input/js0}"
-        target: /dev/input/js0
+        source: "/dev/input"
+        target: /dev/input
+        bind:
+          create_host_path: false
+      - type: bind
+        source: "./work/set_g923_autocenter.py"
+        target: /opt/tod-tools/set_g923_autocenter.py
+        read_only: true
+        bind:
+          create_host_path: false
+    environment:
+      - G923_AUTOCENTER_STRENGTH=${G923_AUTOCENTER_STRENGTH:-30}
+    command:
+      - bash
+      - -lc
+      - >-
+        python3 /opt/tod-tools/set_g923_autocenter.py
+        "$${G923_AUTOCENTER_STRENGTH:-30}" ||
+        { echo "WARNING: Autocenter unavailable; continuing"; exit 0; }
+    restart: "no"
+
+  tod_operator:
+    depends_on:
+      g923_autocenter:
+        condition: service_completed_successfully
+    volumes:
+      - type: bind
+        source: "/dev/input"
+        target: /dev/input
         bind:
           create_host_path: false
       - type: bind
