@@ -3,6 +3,8 @@
 .dev_artifacts/log/*
 .dev_artifacts/data/*
 src/external/*
+__pycache__/
+*.py[cod]
 
 !.dev_artifacts/data/.gitkeep
 !.dev_artifacts/build/.gitkeep
