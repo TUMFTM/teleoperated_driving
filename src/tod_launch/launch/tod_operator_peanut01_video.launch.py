@@ -14,7 +14,7 @@ def generate_launch_description():
         os.path.join(config_dir, "launch_setup_peanut01_video.yaml"),
         mode="operator",
     )
-    launch_args.append(DeclareLaunchArgument("managerOnly", default_value="true"))
+    launch_args.append(DeclareLaunchArgument("managerOnly", default_value="false"))
     remappings = parse_remappings(os.path.join(config_dir, "remappings.yaml"))
     return create_launch_description(
         launch_args, packages, remappings, mode="operator"

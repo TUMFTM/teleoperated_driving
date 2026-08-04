@@ -102,6 +102,8 @@ class Peanut01VideoDeploymentTest(unittest.TestCase):
         for launcher in (VEHICLE_TOP_LEVEL, OPERATOR_TOP_LEVEL):
             text = launcher.read_text(encoding="utf-8")
             self.assertIn("launch_setup_peanut01_video.yaml", text)
+        operator = OPERATOR_TOP_LEVEL.read_text(encoding="utf-8")
+        self.assertIn('DeclareLaunchArgument("managerOnly", default_value="false")', operator)
 
     def test_rtsp_launches_support_domain_and_config_overrides(self):
         vehicle = VEHICLE_RTSP_LAUNCH.read_text(encoding="utf-8")
