@@ -1,0 +1,10 @@
+camera0:
+  name: /camera1
+  is_front_facing: true
+  is_fisheye: false
+  project_on: false
+  scalings: [0p500, 1p000]
+  transition_bitrates: [500, 2500]
+
+camera_topics_namespace: /sensing/camera
+camera_image_name: /image_raw

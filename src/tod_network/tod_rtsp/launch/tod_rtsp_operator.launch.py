@@ -1,7 +1,7 @@
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch_ros.actions import Node
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import EnvironmentVariable, LaunchConfiguration, PathJoinSubstitution
 from ament_index_python.packages import get_package_share_directory
 import os
 
@@ -27,6 +27,15 @@ def generate_launch_description():
         'tod_rtsp',
         'params.yaml'
     ])
+    default_rtsp_config_path = PathJoinSubstitution([
+        LaunchConfiguration("config_path"),
+        "package_config",
+        "tod_rtsp",
+    ])
+    rtsp_config_path = EnvironmentVariable(
+        "TOD_RTSP_CONFIG_PATH",
+        default_value=default_rtsp_config_path,
+    )
 
     # Node definition using launch parameters
     operator_rtsp_clients_node = Node(
@@ -38,11 +47,7 @@ def generate_launch_description():
         parameters=[
             params_file,
             {"camera_params_path": LaunchConfiguration("config_path")},
-            {"router_config_path": PathJoinSubstitution([
-                LaunchConfiguration("config_path"),
-                "package_config",
-                "tod_rtsp"
-                ])},
+            {"router_config_path": rtsp_config_path},
             {"vehicleID": LaunchConfiguration("vehicleID")},
         ]
     )

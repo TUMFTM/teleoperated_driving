@@ -1,0 +1,27 @@
+encoders:
+  - encoder_type: h264
+    tune: zerolatency
+    speedPreset: ultrafast
+    slicedThreads: true
+    byteStream: true
+    intraRefresh: true
+    threads: 1
+    keyIntMax: 15
+    nvidiaBased: false
+
+  - encoder_type: h265
+    tune: zerolatency
+
+  - encoder_type: vp9
+
+  - encoder_type: av1
+
+video_settings:
+  width: 1920
+  height: 1080
+  actual_width: 960
+  actual_height: 540
+  offset_width: 0
+  offset_height: 0
+  scaling_factor: 0p500
+  bitrate: 1500

@@ -10,7 +10,35 @@
  */
 #include "rtsp_stream.hpp"
 
+#include <utility>
+
 using namespace tod_rtsp;
+
+namespace {
+constexpr int kMinimumVideoDimension = 16;
+
+std::pair<int, int> configured_output_dimensions(const videoConfig &config) {
+    std::string scaling = config.scaling_factor;
+    std::replace(scaling.begin(), scaling.end(), 'p', '.');
+    const double factor = std::stod(scaling);
+
+    int width = std::max(kMinimumVideoDimension, static_cast<int>(config.width * factor));
+    int height = std::max(kMinimumVideoDimension, static_cast<int>(config.height * factor));
+    width -= width % 8;
+    height -= height % 8;
+    return {width, height};
+}
+
+void set_scaling_caps(GstElement *scaling_filter, int width, int height) {
+    GstCaps *caps = gst_caps_new_simple(
+        "video/x-raw",
+        "width", G_TYPE_INT, width,
+        "height", G_TYPE_INT, height,
+        nullptr);
+    g_object_set(G_OBJECT(scaling_filter), "caps", caps, nullptr);
+    gst_caps_unref(caps);
+}
+}  // namespace
 
 RtspStream::RtspStream(
     const std::string name,
@@ -89,8 +117,12 @@ void RtspStream::refresh(GstRTSPMountPoints *gstMounts){
 }
 
 void RtspStream::reset(){
+    if (!this->videocrop_ || !this->scalingFilter_) {
+        return;
+    }
+    const auto [output_width, output_height] = configured_output_dimensions(*this->video_config_);
     g_object_set(G_OBJECT(this->videocrop_), "top", 0, "bottom", 0, "left", 0, "right", 0, nullptr);
-    g_object_set(G_OBJECT(this->scalingFilter_), "caps", gst_caps_new_simple("video/x-raw", "width", G_TYPE_INT,this->video_config_->width , "height", G_TYPE_INT, this->video_config_->height , nullptr, nullptr));                
+    set_scaling_caps(this->scalingFilter_, output_width, output_height);
 }
 
 
@@ -134,7 +166,7 @@ bool RtspStream::update_config(videoConfig config){
     std::lock_guard lock(this->mutex_);
     const int fullWidth = this->video_config_->width;
     const int fullHeight = this->video_config_->height;
-    const int minPxSize = 16;
+    const int minPxSize = kMinimumVideoDimension;
 
     // saturate set values according to full width and height
     // also make sure there are only even numbers of pixels
@@ -156,14 +188,7 @@ bool RtspStream::update_config(videoConfig config){
     const int topCrop = fullHeight - config.height - config.offset_height;
 
     // final scaling - round to integer and even pixel numbers multiple of 8
-    std::string scalingStr = config.scaling_factor;
-    // scaling[1] is 'p' in new_config, replace with '.' to cast as double
-    scalingStr.at(1) = '.';
-    const double scalingFactor = std::stod(scalingStr);
-    int actual_width = std::max(minPxSize, static_cast<int>(config.width * scalingFactor));
-    actual_width -= actual_width % 8;
-    int actual_height = std::max(minPxSize, static_cast<int>(config.height * scalingFactor));
-    actual_height -= actual_height % 8;
+    const auto [actual_width, actual_height] = configured_output_dimensions(config);
     // try to set values in gstreamer
     try {
         g_object_set(G_OBJECT(this->videocrop_),
@@ -173,15 +198,11 @@ bool RtspStream::update_config(videoConfig config){
                     "right", rightCrop, 
             nullptr);        
 
-        g_object_set(G_OBJECT(this->scalingFilter_), "caps", 
-            gst_caps_new_simple("video/x-raw", 
-                    "width", G_TYPE_INT, actual_width, 
-                    "height", G_TYPE_INT, actual_height, nullptr
-                )
-            , nullptr);
+        set_scaling_caps(this->scalingFilter_, actual_width, actual_height);
 
         RCLCPP_INFO(*this->logger_, "set (aw,ah,w,h,ow,oh) = (%d,%d,%d,%d,%d,%d) at scaling factor = %f for %s", 
-                actual_width, actual_height, config.width, config.height, config.offset_width, config.offset_height, scalingFactor, this->name_.c_str());
+                actual_width, actual_height, config.width, config.height, config.offset_width, config.offset_height,
+                static_cast<double>(actual_width) / config.width, this->name_.c_str());
         return true;
     }
     catch (const std::exception &e){
@@ -205,10 +226,8 @@ void RtspStream::gst_media_configure(GstRTSPMediaFactory *factory, GstRTSPMedia 
     this->videocrop_ = gst_bin_get_by_name_recurse_up(GST_BIN(element), "mycrop");
     g_object_set(G_OBJECT(this->videocrop_), "top", 0, "bottom", 0, "left", 0, "right", 0, nullptr);
     this->scalingFilter_ = gst_bin_get_by_name_recurse_up(GST_BIN(element), "myscale");
-    g_object_set(G_OBJECT(this->scalingFilter_), "caps", gst_caps_new_simple("video/x-raw", 
-            "width", G_TYPE_INT, this->video_config_->width, 
-            "height", G_TYPE_INT, this->video_config_->height, nullptr), 
-        nullptr);
+    const auto [output_width, output_height] = configured_output_dimensions(*this->video_config_);
+    set_scaling_caps(this->scalingFilter_, output_width, output_height);
 
     // can be used for debugging purpose
     // gives you a .dot file in the environment-variable defined beforhand: export GST_DEBUG_DUMP_DOT_DIR=/path/to/your/dictionary
@@ -225,8 +244,8 @@ void RtspStream::gst_media_configure(GstRTSPMediaFactory *factory, GstRTSPMedia 
                  "do-timestamp", TRUE,
                  "caps", gst_caps_new_simple("video/x-raw", 
                         "format", G_TYPE_STRING, format.c_str(), 
-                        "width", G_TYPE_INT, this->video_config_->width, 
-                        "height", G_TYPE_INT, this->video_config_->height, nullptr), nullptr);
+                        "width", G_TYPE_INT, this->latest_image_->width,
+                        "height", G_TYPE_INT, this->latest_image_->height, nullptr), nullptr);
 
     // install the callback that will be called when a buffer is needed
     g_signal_connect(this->appsrc_, "need-data", (GCallback)static_gst_need_data, this);
@@ -277,11 +296,14 @@ void RtspStream::static_gst_need_data(GstElement *appsrc_, guint unused, RtspStr
 
 void RtspStream::push_data(){
     std::lock_guard lock(this->mutex_);
-    // put image data to buffer and push to pipeline
-    GstBuffer *buffer = gst_buffer_new_wrapped_full(
-        (GstMemoryFlags)0, (gpointer)&(this->latest_image_->data).at(0),
-        this->latest_image_->width * this->latest_image_->step, // size of image in Byte
-        0, this->latest_image_->width * this->latest_image_->step, nullptr, nullptr);
+    const auto data_size = this->latest_image_->data.size();
+    if (data_size == 0) {
+        this->gst_data_request_ = this->ros2_new_data_ = false;
+        return;
+    }
+
+    GstBuffer *buffer = gst_buffer_new_allocate(nullptr, data_size, nullptr);
+    gst_buffer_fill(buffer, 0, this->latest_image_->data.data(), data_size);
     GstFlowReturn ret;
     try{
         g_signal_emit_by_name(this->appsrc_, "push-buffer", buffer, &ret);
