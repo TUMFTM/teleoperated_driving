@@ -1,0 +1,16 @@
+# Peanut01 dry-run only. Uncalibrated dynamics are zero and must not be used for actuation.
+mass: 0.0
+yaw_inertia: 0.0
+
+# The axle split is not calibrated; only the confirmed 0.80 m wheelbase is used here.
+distance_front_axle: 0.4
+distance_rear_axle: 0.4
+width_edge_to_edge: 1.193
+track_width: 0.889
+cornering_force_front: 0.0
+cornering_force_rear: 0.0
+maximum_road_wheel_angle: 1.047
+maximum_steering_wheel_angle: 6.108652
+height: 1.316
+distance_front_bumper: 0.695
+distance_rear_bumper: 0.9778

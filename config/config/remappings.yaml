@@ -20,6 +20,10 @@ tod_rc-car_interface:
   - from: /vehicle/interface/actuation/to_actuation/secondary_control_cmd
     to: /vehicle/safety/output/secondary_control_cmd
 
+tod_peanut01_interface:
+  - from: /vehicle/interface/peanut01/input/primary_control_cmd
+    to: /vehicle/safety/output/primary_control_cmd
+
 tod_vehicle_sim:
   # vehicle
   - from: /vehicle/interface/input/vehicle_status

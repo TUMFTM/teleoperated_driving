@@ -1,0 +1,4 @@
+/**:
+  ros__parameters:
+    steering_ratio: 16.0
+    command_timeout_ms: 300
