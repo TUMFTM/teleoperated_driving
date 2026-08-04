@@ -21,6 +21,7 @@ VEHICLE_TOP_LEVEL = (
 OPERATOR_TOP_LEVEL = (
     ROOT / "src/tod_launch/launch/tod_operator_peanut01_video.launch.py"
 )
+VIDEO_VIEWER = ROOT / "work/peanut01_video_viewer.py"
 VEHICLE_RTSP_LAUNCH = (
     ROOT / "src/tod_network/tod_rtsp/launch/tod_rtsp_vehicle.launch.py"
 )
@@ -94,6 +95,12 @@ class Peanut01VideoDeploymentTest(unittest.TestCase):
                 for volume in vehicle["volumes"]
             )
         )
+        self.assertTrue(
+            any(
+                volume["target"] == "/opt/tod-tools/peanut01_video_viewer.py"
+                for volume in operator["volumes"]
+            )
+        )
 
     def test_top_level_launchers_use_video_profile(self):
         self.assertTrue(VEHICLE_TOP_LEVEL.exists(), "missing vehicle video launcher")
@@ -103,7 +110,18 @@ class Peanut01VideoDeploymentTest(unittest.TestCase):
             text = launcher.read_text(encoding="utf-8")
             self.assertIn("launch_setup_peanut01_video.yaml", text)
         operator = OPERATOR_TOP_LEVEL.read_text(encoding="utf-8")
-        self.assertIn('DeclareLaunchArgument("managerOnly", default_value="false")', operator)
+        self.assertIn('DeclareLaunchArgument("managerOnly", default_value="true")', operator)
+        self.assertIn("ExecuteProcess", operator)
+        self.assertIn("/opt/tod-tools/peanut01_video_viewer.py", operator)
+
+    def test_standalone_viewer_subscribes_to_decoded_camera_topic(self):
+        self.assertTrue(VIDEO_VIEWER.exists(), "missing standalone video viewer")
+        viewer = VIDEO_VIEWER.read_text(encoding="utf-8")
+
+        self.assertIn("/operator/network/video/camera1/image", viewer)
+        self.assertIn("qos_profile_sensor_data", viewer)
+        self.assertIn("cv2.imshow", viewer)
+        self.assertIn("COLOR_RGB2BGR", viewer)
 
     def test_rtsp_launches_support_domain_and_config_overrides(self):
         vehicle = VEHICLE_RTSP_LAUNCH.read_text(encoding="utf-8")

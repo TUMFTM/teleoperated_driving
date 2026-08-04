@@ -45,6 +45,12 @@ services:
         read_only: true
         bind:
           create_host_path: false
+      - type: bind
+        source: ./work/peanut01_video_viewer.py
+        target: /opt/tod-tools/peanut01_video_viewer.py
+        read_only: true
+        bind:
+          create_host_path: false
     environment:
       TOD_RTSP_CONFIG_PATH: /home/tum/wsp/install/tod_launch/share/tod_launch/config/vehicle_config/peanut01
     command:
