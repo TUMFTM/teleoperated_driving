@@ -72,6 +72,14 @@ class DeploymentConfigTests(unittest.TestCase):
         self.assertIn('COLCON_RETRY_MAX:-5', colcon_retry)
         self.assertIn('ROSDEP_RETRY_MAX:-5', rosdep_retry)
 
+    def test_rosdep_skips_optional_autoware_message_packages(self):
+        rosdep_retry = (REPO / "docker/rosdep_retry.sh").read_text(encoding="utf-8")
+
+        self.assertIn("--skip-keys", rosdep_retry)
+        self.assertIn("autoware_auto_planning_msgs", rosdep_retry)
+        self.assertIn("autoware_auto_vehicle_msgs", rosdep_retry)
+        self.assertIn("tier4_external_api_msgs", rosdep_retry)
+
     def test_xauthority_mount_uses_container_target(self):
         compose = (REPO / "docker-compose.yaml").read_text(encoding="utf-8")
 
