@@ -86,10 +86,15 @@ class GhcrImageTest(unittest.TestCase):
         workflow = WORKFLOW.read_text(encoding="utf-8")
 
         self.assertIn("runs-on: ubuntu-22.04", workflow)
-        self.assertIn("python3-vcstool", workflow)
-        self.assertIn("vcs import src < dependencies.repos", workflow)
+        for repository in (
+            "tier4/autoware_auto_msgs",
+            "tier4/tier4_autoware_msgs",
+            "autowarefoundation/autoware_adapi_msgs",
+            "autowarefoundation/autoware_msgs",
+        ):
+            self.assertIn(f"repository: {repository}", workflow)
         self.assertLess(
-            workflow.index("vcs import src < dependencies.repos"),
+            workflow.index("repository: autowarefoundation/autoware_msgs"),
             workflow.index("docker/build-push-action"),
         )
 

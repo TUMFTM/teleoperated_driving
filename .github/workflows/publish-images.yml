@@ -31,11 +31,33 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v4
 
-      - name: Import source dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y python3-vcstool
-          vcs import src < dependencies.repos
+      - name: Check out Autoware Auto messages
+        uses: actions/checkout@v4
+        with:
+          repository: tier4/autoware_auto_msgs
+          ref: 624aae9feb142eb2a4e16069ed06bf4050ccc3ea
+          path: src/external/autoware/messages/autoware_auto_msgs
+
+      - name: Check out Tier4 Autoware messages
+        uses: actions/checkout@v4
+        with:
+          repository: tier4/tier4_autoware_msgs
+          ref: 12504f69041fb8c895ffb5625da63be2ea69da4b
+          path: src/external/autoware/messages/tier4_autoware_msgs
+
+      - name: Check out Autoware AD API messages
+        uses: actions/checkout@v4
+        with:
+          repository: autowarefoundation/autoware_adapi_msgs
+          ref: 5e36db1826da3a50f5c2f05f000e5d9cbd897553
+          path: src/external/autoware/messages/autoware_adapi_msgs
+
+      - name: Check out Autoware messages
+        uses: actions/checkout@v4
+        with:
+          repository: autowarefoundation/autoware_msgs
+          ref: f3ee114e1f3bf66a4df96d7dbfa209903c9cb75a
+          path: src/external/autoware/messages/autoware_msgs
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
