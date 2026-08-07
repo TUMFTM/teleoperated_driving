@@ -56,6 +56,20 @@ def generate_launch_description():
             {"vehicleID": LaunchConfiguration("vehicleID")},
             {"stream_settings_path": rtsp_config_path},
         ],
+        remappings=[
+            (
+                "/sensing/camera/frontleft/image_raw",
+                "/sensing/camera/left/image_raw",
+            ),
+            (
+                "/sensing/camera/frontcenter/image_raw",
+                "/sensing/camera/camera1/image_raw",
+            ),
+            (
+                "/sensing/camera/frontright/image_raw",
+                "/sensing/camera/right/image_raw",
+            ),
+        ],
         additional_env={"ROS_DOMAIN_ID": sensor_domain_id},
     )
 

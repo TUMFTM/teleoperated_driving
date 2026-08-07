@@ -1,58 +1,29 @@
 services:
   tod_vehicle:
-    volumes:
-      - type: bind
-        source: ./.peanut01_video_overlay/install
-        target: /home/tum/peanut01_video_overlay/install
-        read_only: true
-        bind:
-          create_host_path: false
-      - type: bind
-        source: ./src/tod_launch/launch/tod_vehicle_peanut01_video.launch.py
-        target: /home/tum/wsp/install/tod_launch/share/tod_launch/launch/tod_vehicle_peanut01_video.launch.py
-        read_only: true
-        bind:
-          create_host_path: false
-      - type: bind
-        source: ./src/tod_network/tod_rtsp/launch/tod_rtsp_vehicle.launch.py
-        target: /home/tum/peanut01_video_overlay/install/tod_rtsp/share/tod_rtsp/launch/tod_rtsp_vehicle.launch.py
-        read_only: true
-        bind:
-          create_host_path: false
     environment:
       TOD_RTSP_SENSOR_DOMAIN_ID: ${TOD_RTSP_SENSOR_DOMAIN_ID:-0}
+      TOD_LIDAR_SENSOR_DOMAIN_ID: ${TOD_LIDAR_SENSOR_DOMAIN_ID:-0}
+      TOD_VEHICLE_STATE_SENSOR_DOMAIN_ID: ${TOD_VEHICLE_STATE_SENSOR_DOMAIN_ID:-0}
       TOD_RTSP_CONFIG_PATH: /home/tum/wsp/install/tod_launch/share/tod_launch/config/vehicle_config/peanut01
     command:
-      - bash
-      - -lc
-      - >-
-        source /home/tum/peanut01_overlay/install/setup.bash &&
-        source /home/tum/peanut01_video_overlay/install/setup.bash &&
-        exec ros2 launch tod_launch tod_vehicle_peanut01_video.launch.py
-        vehicleNetworkInterface:=${VEHICLE_NETWORK_INTERFACE:-eth1}
+      - ros2
+      - launch
+      - tod_launch
+      - tod_vehicle_peanut01_video.launch.py
+      - vehicleNetworkInterface:=${VEHICLE_NETWORK_INTERFACE:-eth1}
 
   tod_operator:
-    volumes:
-      - type: bind
-        source: ./src/tod_launch/launch/tod_operator_peanut01_video.launch.py
-        target: /home/tum/wsp/install/tod_launch/share/tod_launch/launch/tod_operator_peanut01_video.launch.py
-        read_only: true
-        bind:
-          create_host_path: false
-      - type: bind
-        source: ./src/tod_network/tod_rtsp/launch/tod_rtsp_operator.launch.py
-        target: /home/tum/wsp/install/tod_rtsp/share/tod_rtsp/launch/tod_rtsp_operator.launch.py
-        read_only: true
-        bind:
-          create_host_path: false
-      - type: bind
-        source: ./work/peanut01_video_viewer.py
-        target: /opt/tod-tools/peanut01_video_viewer.py
-        read_only: true
-        bind:
-          create_host_path: false
     environment:
       TOD_RTSP_CONFIG_PATH: /home/tum/wsp/install/tod_launch/share/tod_launch/config/vehicle_config/peanut01
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     command:
       - ros2
       - launch

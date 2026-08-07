@@ -104,6 +104,7 @@ bool RtspServer::load_cam_params_init_streams(const std::string &topicNamespace,
                     new_config,
                     this->inactivity_timeout_,
                     std::make_shared<rclcpp::Logger>(RtspServer::get_logger())));
+                stream->update_activity(!cam.stream_on_connect);
                 std::string topic{topicNamespace + cam.name + imageName};
                 RCLCPP_INFO(this->get_logger(), "Topic: %s", topic.c_str());
                 stream->image_sub_ = this->create_subscription<sensor_msgs::msg::Image>(topic, 1, 

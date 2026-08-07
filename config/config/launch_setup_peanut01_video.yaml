@@ -18,7 +18,6 @@ packages_to_launch:
     tod_communication_interface: True
     tod_state_machine: True
     tod_logger: False
-    tod_lidar: False
     tod_rtsp: True
     tod_data_interface: True
     tod_network_monitoring: True

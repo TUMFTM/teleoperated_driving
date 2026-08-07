@@ -77,12 +77,12 @@ template <class ImageComp>
 void VideoLayer<ImageComp>::on_update(float ts) {
     tod_gl::Entity subscription_manager = _active_scene->find_entity_with_tag("SubscriptionManager");
     if (subscription_manager.has_component<ImageComp>()) {
-        const sensor_msgs::msg::Image &image = subscription_manager.get_component<ImageComp>().image;
+        auto image = subscription_manager.get_component<ImageComp>().get_image();
         
-        if (!image.data.empty()) {
-            width_ = image.width;
-            height_ = image.height;
-            update_video_texture(image);
+        if (image && !image->data.empty()) {
+            width_ = image->width;
+            height_ = image->height;
+            update_video_texture(*image);
         }
     }
 }
@@ -115,7 +115,11 @@ void VideoLayer<ImageComp>::update_video_texture(const sensor_msgs::msg::Image& 
         texture_.height = height_;
         tod_gl::Renderer::delete_texture(texture_);
         tod_gl::Renderer::generate_texture(texture_, nullptr, shader_, video_layer_texture_unit);
-        tod_gl::Renderer::create_buffer(front_buffer_, nullptr, width_ * height_ * 3);
+        const uint32_t buffer_size = width_ * height_ * 3;
+        tod_gl::RenderCommand::ForBuffer::bind_and_upload(front_buffer_, nullptr, buffer_size);
+        tod_gl::RenderCommand::ForBuffer::unbind(front_buffer_);
+        tod_gl::RenderCommand::ForBuffer::bind_and_upload(back_buffer_, nullptr, buffer_size);
+        tod_gl::RenderCommand::ForBuffer::unbind(back_buffer_);
     }
 
     tod_gl::ShaderSystem::use_shader_program(shader_);
@@ -142,7 +146,7 @@ void VideoLayer<ImageComp>::render_video_texture() {
     ImVec2 avail = ImGui::GetContentRegionAvail();
     calculate_display_dimensions(avail);
 
-    float off_x = ((avail.x - width_) * 0.5f);
+    float off_x = ((avail.x - display_width_) * 0.5f);
     off_x = std::max(0.0f, off_x);
     
     ImVec2 cursor_pos = ImGui::GetCursorPos();
@@ -153,7 +157,7 @@ void VideoLayer<ImageComp>::render_video_texture() {
         tod_gl::RenderCommand::ForTexture::active_and_bind(texture_, video_layer_texture_unit);
         
         ImGui::Image(reinterpret_cast<void*>(static_cast<intptr_t>(texture_.id)),
-                    ImVec2(width_, height_));
+                    ImVec2(display_width_, display_height_));
         
         tod_gl::RenderCommand::ForTexture::unbind(texture_);
         tod_gl::ShaderSystem::use_shader_program(0);
@@ -162,14 +166,19 @@ void VideoLayer<ImageComp>::render_video_texture() {
 
 template <class ImageComp>
 void VideoLayer<ImageComp>::calculate_display_dimensions(const ImVec2& available_space) {
+    if (height_ == 0) {
+        display_width_ = 0.0f;
+        display_height_ = 0.0f;
+        return;
+    }
+
+    const float ratio = static_cast<float>(width_) / static_cast<float>(height_);
     if (should_video_fit_to_window_) {
-        float ratio = width_ / height_;
-        width_ = available_space.y * ratio;
-        height_ = available_space.y;
+        display_height_ = available_space.y;
+        display_width_ = display_height_ * ratio;
     } else {
-        float ratio = width_ / height_;
-        width_ = available_space.y * ratio * custom_scaling_;
-        height_ = available_space.y * custom_scaling_;
+        display_height_ = available_space.y * custom_scaling_;
+        display_width_ = display_height_ * ratio;
     }
 }
 

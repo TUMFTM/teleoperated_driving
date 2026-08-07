@@ -94,14 +94,6 @@ void SceneApplication::run() {
 
         if (priorMode != _current_mode) {
             auto showImguiVideos = true;
-            if (_current_mode == tod_status_msgs::msg::Status::CONTROL_MODE_DIRECT ||
-                _current_mode == tod_status_msgs::msg::Status::CONTROL_MODE_SHARED) {
-                showImguiVideos = false;
-            } else if (_current_mode == tod_status_msgs::msg::Status::CONTROL_MODE_PATH_GUIDANCE ||
-                       _current_mode == tod_status_msgs::msg::Status::CONTROL_MODE_PERCEPTION_MODIFICATION ||
-                       _current_mode == tod_status_msgs::msg::Status::CONTROL_MODE_WAYPOINT) {
-                showImguiVideos = true;
-            }
             for (SceneLayer *layer : _layer_stack) {
                 if (auto *dockingSceneLayer = dynamic_cast<DockingSceneLayer *>(layer)) {
                     dockingSceneLayer->show_videos = showImguiVideos;

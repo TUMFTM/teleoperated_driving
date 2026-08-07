@@ -30,6 +30,36 @@ OPERATOR_RTSP_LAUNCH = (
 )
 RTSP_SERVER = ROOT / "src/tod_network/tod_rtsp/src/vehicle/rtsp_server.cpp"
 RTSP_STREAM = ROOT / "src/tod_network/tod_rtsp/src/vehicle/rtsp_stream.cpp"
+IMAGE_COMPONENT = (
+    ROOT
+    / "src/tod_operator_interface/tod_visual/src/tod_gl/src/ros_interface/"
+    "subscribing_components/image_component.cpp"
+)
+VIDEO_LAYER_HEADER = (
+    ROOT
+    / "src/tod_operator_interface/tod_visual/src/tod_applications/visual/"
+    "application_layer/include/video_layer.hpp"
+)
+VIDEO_LAYER_SOURCE = (
+    ROOT
+    / "src/tod_operator_interface/tod_visual/src/tod_applications/visual/"
+    "application_layer/src/video_layer.cpp"
+)
+VIDEO_RENDERER_SOURCE = (
+    ROOT
+    / "src/tod_operator_interface/tod_visual/src/tod_entities/"
+    "tod_dynamic_entities/src/video_renderer.cpp"
+)
+VISUAL_STATE_LAYER = (
+    ROOT
+    / "src/tod_operator_interface/tod_visual/src/tod_applications/visual/"
+    "application_layer/src/state_layer.cpp"
+)
+SCENE_APPLICATION = (
+    ROOT
+    / "src/tod_operator_interface/tod_visual/src/tod_gl/src/core/"
+    "scene_application.cpp"
+)
 
 
 def load_yaml(testcase, path):
@@ -38,37 +68,49 @@ def load_yaml(testcase, path):
 
 
 class Peanut01VideoDeploymentTest(unittest.TestCase):
-    def test_profile_enables_video_without_lidar_or_projection(self):
+    def test_profile_enables_video_without_duplicate_lidar_or_projection(self):
         profile = load_yaml(self, PROFILE)
 
         self.assertEqual("peanut01", profile["launch_parameters"]["vehicleID"])
         packages = profile["packages_to_launch"]
         self.assertTrue(packages["both"]["tod_rtsp"])
-        self.assertFalse(packages["both"]["tod_lidar"])
+        self.assertNotIn("tod_lidar", packages["operator"])
+        self.assertNotIn("tod_lidar", packages["both"])
         self.assertFalse(packages["operator"]["tod_projection"])
         self.assertFalse(packages["both"]["tod_transform"])
 
-    def test_camera_topic_and_low_latency_profile(self):
+    def test_three_front_camera_topics_and_low_latency_profile(self):
         camera = load_yaml(self, CAMERA)
         stream = load_yaml(self, STREAM)["video_settings"]
-        camera_topic = (
+        camera_topics = [
             camera["camera_topics_namespace"]
-            + camera["camera0"]["name"]
+            + camera[f"camera{index}"]["name"]
             + camera["camera_image_name"]
-        )
+            for index in range(3)
+        ]
 
-        self.assertEqual("/sensing/camera/camera1/image_raw", camera_topic)
-        self.assertFalse(camera["camera0"]["project_on"])
+        self.assertEqual(
+            [
+                "/sensing/camera/frontleft/image_raw",
+                "/sensing/camera/frontcenter/image_raw",
+                "/sensing/camera/frontright/image_raw",
+            ],
+            camera_topics,
+        )
+        for index in range(3):
+            self.assertFalse(camera[f"camera{index}"]["project_on"])
         self.assertEqual((1920, 1080), (stream["width"], stream["height"]))
         self.assertEqual((960, 540), (stream["actual_width"], stream["actual_height"]))
         self.assertEqual("0p500", stream["scaling_factor"])
-        self.assertEqual(1500, stream["bitrate"])
+        self.assertEqual(4500, stream["bitrate"])
+        self.assertEqual(1500, stream["bitrate"] // len(camera_topics))
 
     def test_visual_config_is_explicitly_non_projected_and_uncalibrated(self):
         visual = load_yaml(self, VISUAL)
         calibration = load_yaml(self, CALIBRATION)
 
-        self.assertEqual(0, visual["camera1"]["VideoComponent"]["ProjectionMode"])
+        for camera in ("frontleft", "frontcenter", "frontright"):
+            self.assertEqual(0, visual[camera]["VideoComponent"]["ProjectionMode"])
         self.assertEqual("uncalibrated", calibration["camera_name"])
         self.assertEqual(1920, calibration["image_width"])
         self.assertEqual(1080, calibration["image_height"])
@@ -78,7 +120,7 @@ class Peanut01VideoDeploymentTest(unittest.TestCase):
 
         self.assertEqual([], routers["ips"])
 
-    def test_compose_overlay_selects_video_launchers_and_sensor_domain(self):
+    def test_compose_selects_baked_video_launchers_and_sensor_domain(self):
         compose = load_yaml(self, COMPOSE)["services"]
         vehicle = compose["tod_vehicle"]
         operator = compose["tod_operator"]
@@ -86,21 +128,10 @@ class Peanut01VideoDeploymentTest(unittest.TestCase):
         operator_command = " ".join(operator["command"])
 
         self.assertEqual("${TOD_RTSP_SENSOR_DOMAIN_ID:-0}", vehicle["environment"]["TOD_RTSP_SENSOR_DOMAIN_ID"])
-        self.assertIn("peanut01_video_overlay/install/setup.bash", vehicle_command)
         self.assertIn("tod_vehicle_peanut01_video.launch.py", vehicle_command)
         self.assertIn("tod_operator_peanut01_video.launch.py", operator_command)
-        self.assertTrue(
-            any(
-                volume["target"].endswith("tod_rtsp_vehicle.launch.py")
-                for volume in vehicle["volumes"]
-            )
-        )
-        self.assertTrue(
-            any(
-                volume["target"] == "/opt/tod-tools/peanut01_video_viewer.py"
-                for volume in operator["volumes"]
-            )
-        )
+        self.assertNotIn("volumes", vehicle)
+        self.assertNotIn("volumes", operator)
 
     def test_top_level_launchers_use_video_profile(self):
         self.assertTrue(VEHICLE_TOP_LEVEL.exists(), "missing vehicle video launcher")
@@ -111,17 +142,103 @@ class Peanut01VideoDeploymentTest(unittest.TestCase):
             self.assertIn("launch_setup_peanut01_video.yaml", text)
         operator = OPERATOR_TOP_LEVEL.read_text(encoding="utf-8")
         self.assertIn('DeclareLaunchArgument("managerOnly", default_value="true")', operator)
-        self.assertIn("ExecuteProcess", operator)
-        self.assertIn("/opt/tod-tools/peanut01_video_viewer.py", operator)
+        self.assertNotIn("ExecuteProcess", operator)
+        self.assertNotIn("/opt/tod-tools/peanut01_video_viewer.py", operator)
 
-    def test_standalone_viewer_subscribes_to_decoded_camera_topic(self):
+    def test_native_visual_uses_three_camera_remappings(self):
+        operator = OPERATOR_TOP_LEVEL.read_text(encoding="utf-8")
+        remappings = (ROOT / "config/config/remappings.yaml").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn('visual_remappings = remappings.get("tod_visual", [])', operator)
+        self.assertIn("remappings=visual_remappings", operator)
+        self.assertIn("to: /operator/network/video/frontcenter/image", remappings)
+
+    def test_native_visual_rotates_side_camera_images_clockwise(self):
+        component = IMAGE_COMPONENT.read_text(encoding="utf-8")
+
+        self.assertIn("rotate_clockwise_ = true", component)
+        self.assertEqual(2, component.count("rotate_clockwise_ = true"))
+        self.assertIn("cv::ROTATE_90_CLOCKWISE", component)
+
+    def test_native_visual_keeps_video_panes_in_direct_control_mode(self):
+        state_layer = VISUAL_STATE_LAYER.read_text(encoding="utf-8")
+        scene_application = SCENE_APPLICATION.read_text(encoding="utf-8")
+
+        for layer in ("Left", "Center", "Right"):
+            registration = (
+                f'stateManager.register_layer("{layer}", '
+                "{tod_status_msgs::msg::Status::CONTROL_MODE_NONE,"
+                "tod_status_msgs::msg::Status::CONTROL_MODE_DIRECT,"
+                "tod_status_msgs::msg::Status::CONTROL_MODE_SHARED,"
+                "tod_status_msgs::msg::Status::CONTROL_MODE_PATH_GUIDANCE});"
+            )
+            self.assertIn(registration, state_layer.replace("\n", ""))
+        self.assertNotIn("showImguiVideos = false", scene_application)
+
+    def test_native_visual_does_not_resize_textures_to_ui_dimensions(self):
+        header = VIDEO_LAYER_HEADER.read_text(encoding="utf-8")
+        source = VIDEO_LAYER_SOURCE.read_text(encoding="utf-8")
+
+        self.assertIn("display_width_", header)
+        self.assertIn("display_height_", header)
+        self.assertIn("ImVec2(display_width_, display_height_)", source)
+        self.assertNotIn("width_ = available_space.y * ratio", source)
+        self.assertNotIn("\n        height_ = available_space.y", source)
+
+    def test_native_visual_publishes_side_frames_after_rotation(self):
+        component = IMAGE_COMPONENT.read_text(encoding="utf-8")
+        layer = VIDEO_LAYER_SOURCE.read_text(encoding="utf-8")
+        renderer = VIDEO_RENDERER_SOURCE.read_text(encoding="utf-8")
+
+        self.assertIn("processed_image", component)
+        self.assertLess(
+            component.index("rotate_image_clockwise(*processed_image)"),
+            component.index("latest_image_ = std::move(processed_image)"),
+        )
+        self.assertIn("get_image()", layer)
+        self.assertIn("get_image()", renderer)
+        self.assertNotIn("get_component<ImageComp>().image", layer)
+        self.assertNotIn("imageComp.image", renderer)
+
+    def test_standalone_viewer_subscribes_to_three_decoded_camera_topics(self):
         self.assertTrue(VIDEO_VIEWER.exists(), "missing standalone video viewer")
         viewer = VIDEO_VIEWER.read_text(encoding="utf-8")
 
-        self.assertIn("/operator/network/video/camera1/image", viewer)
+        for camera in ("frontleft", "frontcenter", "frontright"):
+            self.assertIn(f"/operator/network/video/{camera}/image", viewer)
         self.assertIn("qos_profile_sensor_data", viewer)
         self.assertIn("cv2.imshow", viewer)
         self.assertIn("COLOR_RGB2BGR", viewer)
+        self.assertIn("np.hstack", viewer)
+        self.assertIn("tod_config_msgs.srv", viewer)
+        self.assertIn(
+            "/operator/network/config/to_vehicle/set_video_config", viewer
+        )
+        self.assertIn("_activate_next_stream", viewer)
+        self.assertIn("call_async", viewer)
+
+    def test_standalone_viewer_rotates_side_cameras_without_stretching(self):
+        viewer = VIDEO_VIEWER.read_text(encoding="utf-8")
+
+        self.assertIn('"LEFT": cv2.ROTATE_90_CLOCKWISE', viewer)
+        self.assertIn('"RIGHT": cv2.ROTATE_90_CLOCKWISE', viewer)
+        self.assertNotIn('"CENTER": cv2.ROTATE_90_CLOCKWISE', viewer)
+        self.assertIn("cv2.rotate(frame, ROTATIONS[name])", viewer)
+        self.assertIn("fit_frame_to_tile(frame)", viewer)
+
+    def test_rtsp_vehicle_launch_maps_front_streams_to_real_camera_topics(self):
+        launch = VEHICLE_RTSP_LAUNCH.read_text(encoding="utf-8")
+
+        expected_remappings = {
+            "/sensing/camera/frontleft/image_raw": "/sensing/camera/left/image_raw",
+            "/sensing/camera/frontcenter/image_raw": "/sensing/camera/camera1/image_raw",
+            "/sensing/camera/frontright/image_raw": "/sensing/camera/right/image_raw",
+        }
+        for virtual_topic, source_topic in expected_remappings.items():
+            self.assertIn(virtual_topic, launch)
+            self.assertIn(source_topic, launch)
 
     def test_rtsp_launches_support_domain_and_config_overrides(self):
         vehicle = VEHICLE_RTSP_LAUNCH.read_text(encoding="utf-8")
@@ -137,6 +254,7 @@ class Peanut01VideoDeploymentTest(unittest.TestCase):
 
         self.assertIn("_ips.empty()", server)
         self.assertIn('"0.0.0.0"', server)
+        self.assertIn("update_activity(!cam.stream_on_connect)", server)
 
     def test_rtsp_stream_owns_exact_image_buffer_and_applies_initial_scaling(self):
         stream = RTSP_STREAM.read_text(encoding="utf-8")

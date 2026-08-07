@@ -77,13 +77,13 @@ class Peanut01DryRunDeploymentTest(unittest.TestCase):
         ):
             self.assertEqual(0.0, params[uncalibrated])
 
-    def test_compose_uses_control_only_launchers_and_vehicle_overlay(self):
+    def test_compose_uses_baked_control_only_launchers(self):
         compose = yaml.safe_load(COMPOSE.read_text(encoding="utf-8"))["services"]
 
         vehicle_command = " ".join(compose["tod_vehicle"]["command"])
         operator_command = " ".join(compose["tod_operator"]["command"])
         self.assertIn("tod_vehicle_control_only.launch.py", vehicle_command)
-        self.assertIn("peanut01_overlay/install/setup.bash", vehicle_command)
+        self.assertNotIn("overlay", vehicle_command)
         self.assertIn("tod_operator_control_only.launch.py", operator_command)
 
     def test_interface_launch_has_shared_config_default(self):

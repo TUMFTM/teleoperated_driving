@@ -1,32 +1,13 @@
 services:
   tod_vehicle:
-    volumes:
-      - type: bind
-        source: ./.peanut01_overlay/install
-        target: /home/tum/peanut01_overlay/install
-        read_only: true
-      - type: bind
-        source: ./src/tod_launch/launch/tod_vehicle_control_only.launch.py
-        target: /home/tum/wsp/install/tod_launch/share/tod_launch/launch/tod_vehicle_control_only.launch.py
-        read_only: true
     command:
-      - bash
-      - -lc
-      - >-
-        source /home/tum/peanut01_overlay/install/setup.bash &&
-        exec ros2 launch tod_launch tod_vehicle_control_only.launch.py
-        vehicleNetworkInterface:=${VEHICLE_NETWORK_INTERFACE:-eth1}
+      - ros2
+      - launch
+      - tod_launch
+      - tod_vehicle_control_only.launch.py
+      - vehicleNetworkInterface:=${VEHICLE_NETWORK_INTERFACE:-eth1}
 
   tod_operator:
-    volumes:
-      - type: bind
-        source: ./src/tod_launch/launch/tod_operator_control_only.launch.py
-        target: /home/tum/wsp/install/tod_launch/share/tod_launch/launch/tod_operator_control_only.launch.py
-        read_only: true
-      - type: bind
-        source: ./src/tod_operator_interface/tod_visual/launch/tod_visual.launch.py
-        target: /home/tum/wsp/install/tod_visual/share/tod_visual/launch/tod_visual.launch.py
-        read_only: true
     command:
       - ros2
       - launch

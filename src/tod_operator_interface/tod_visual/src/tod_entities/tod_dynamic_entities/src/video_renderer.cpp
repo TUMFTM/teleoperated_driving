@@ -133,12 +133,12 @@ void VideoRenderer<VideoComp>::on_update(float) {
     }
 
     auto &imageComp = subManager.template get_component<VideoComp>();
-    if ((imageComp.image.data.empty())) {
+    auto image = imageComp.get_image();
+    if (!image || image->data.empty()) {
         return;
     }
 
-
-    videoCmp.last_image_msg = std::make_shared<sensor_msgs::msg::Image>(imageComp.image);
+    videoCmp.last_image_msg = std::move(image);
 
     if (videoCmp.pixel_buffers.at(0).width != videoCmp.last_image_msg->width ||
                 videoCmp.pixel_buffers.at(0).height != videoCmp.last_image_msg->height) {

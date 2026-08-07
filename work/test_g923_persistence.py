@@ -6,6 +6,7 @@ import yaml
 
 REPO = pathlib.Path(__file__).resolve().parents[1]
 OVERRIDE = REPO / "docker-compose.override.yaml"
+DOCKERFILE = REPO / "docker" / "dockerfile"
 SETUP = REPO / "work" / "setup_g923_runtime.sh"
 CONFIG = REPO / "work" / "logitechg923.yaml"
 
@@ -37,8 +38,9 @@ class G923PersistenceTests(unittest.TestCase):
             )
         )
 
-    def test_compose_bind_mounts_device_and_both_config_names(self):
+    def test_operator_image_contains_configs_and_compose_mounts_device_directory(self):
         override = OVERRIDE.read_text(encoding="utf-8")
+        dockerfile = DOCKERFILE.read_text(encoding="utf-8")
         operator = yaml.safe_load(override)["services"]["tod_operator"]
 
         self.assertIn("volumes:", override)
@@ -46,10 +48,10 @@ class G923PersistenceTests(unittest.TestCase):
         self.assertIn('source: "/dev/input"', override)
         self.assertIn("target: /dev/input", override)
         self.assertNotIn("INPUT_DEVICE", override)
-        self.assertEqual(override.count('source: "./work/logitechg923.yaml"'), 2)
-        self.assertIn(f"target: {INPUT_CONFIG_DIR}/virtual.yaml", override)
-        self.assertIn(f"target: {INPUT_CONFIG_DIR}/logitechg923.yaml", override)
-        self.assertEqual(len(operator["volumes"]), 3)
+        self.assertNotIn('source: "./work/logitechg923.yaml"', override)
+        self.assertIn("wsp/install/tod_input_devices/share/tod_input_devices/config/virtual.yaml", dockerfile)
+        self.assertIn("wsp/install/tod_input_devices/share/tod_input_devices/config/logitechg923.yaml", dockerfile)
+        self.assertEqual(len(operator["volumes"]), 1)
         self.assertTrue(
             all(volume["bind"]["create_host_path"] is False for volume in operator["volumes"])
         )

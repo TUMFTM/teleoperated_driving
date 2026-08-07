@@ -169,7 +169,7 @@ services:
   ###################################################################################
   tod_vehicle:
     extends: tod_base
-    image: ${DOCKER_REGISTRY}/tod_vehicle:${DOCKER_TAG:?}
+    image: ${TOD_VEHICLE_IMAGE:?}:${DOCKER_TAG:?}
     container_name: tod_vehicle_${DOCKER_TAG:?}
     build:
       context: .
@@ -212,7 +212,7 @@ services:
   ###################################################################################
   tod_operator:
     extends: tod_base
-    image: ${DOCKER_REGISTRY}/tod_operator:${DOCKER_TAG:?}
+    image: ${TOD_OPERATOR_IMAGE:?}:${DOCKER_TAG:?}
     container_name: tod_operator_${DOCKER_TAG:?}
     build:
       context: .

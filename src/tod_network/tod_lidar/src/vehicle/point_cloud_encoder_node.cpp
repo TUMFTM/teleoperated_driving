@@ -51,6 +51,7 @@ public:
     PointCloudEncoderNode() : Node("pointcloud_sender_" + std::to_string(std::time(nullptr)))
     {
         this->declare_parameter("enable_logging", false);
+        this->declare_parameter("input_reliability", "best_effort");
         this->declare_parameter("target_points", 100001);
         this->declare_parameter("vehicleID", "edgar");
         this->declare_parameter("smooth_pointclouds", false);
@@ -102,7 +103,18 @@ public:
 
         auto topic_name =  lidarParamHandler_->get_lidar_topics_namespace() + lidarParamHandler_->get_pointcloud_name();
         auto qos = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data));
-        qos.best_effort();
+        const auto input_reliability = this->get_parameter("input_reliability").as_string();
+        if (input_reliability == "reliable") {
+            qos.reliable();
+        } else {
+            if (input_reliability != "best_effort") {
+                RCLCPP_WARN(
+                    this->get_logger(),
+                    "Unknown input_reliability '%s'; using best_effort",
+                    input_reliability.c_str());
+            }
+            qos.best_effort();
+        }
         encoder_ = std::make_unique<DracoEncoder>();
         auto draco_params = DracoEncoder::EncoderParams();
         
