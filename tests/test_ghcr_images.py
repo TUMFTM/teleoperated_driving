@@ -74,18 +74,24 @@ class GhcrImageTest(unittest.TestCase):
     def test_workflow_publishes_both_images_for_both_architectures(self):
         workflow = WORKFLOW.read_text(encoding="utf-8")
 
-        self.assertIn("linux/amd64,linux/arm64", workflow)
+        self.assertIn("platform: linux/amd64", workflow)
+        self.assertIn("platform: linux/arm64", workflow)
+        self.assertIn("runner: ubuntu-22.04", workflow)
+        self.assertIn("runner: ubuntu-24.04-arm", workflow)
+        self.assertNotIn("docker/setup-qemu-action", workflow)
         self.assertIn("target: tod_operator", workflow)
         self.assertIn("target: tod_vehicle", workflow)
         self.assertIn("ghcr.io/sl-kai/teleoperated-driving-operator", workflow)
         self.assertIn("ghcr.io/sl-kai/teleoperated-driving-vehicle", workflow)
         self.assertIn("docker/login-action", workflow)
         self.assertIn("docker/build-push-action", workflow)
+        self.assertIn("docker buildx imagetools create", workflow)
+        self.assertIn("needs: build", workflow)
 
     def test_workflow_imports_source_dependencies_before_building(self):
         workflow = WORKFLOW.read_text(encoding="utf-8")
 
-        self.assertIn("runs-on: ubuntu-22.04", workflow)
+        self.assertIn("runs-on: ${{ matrix.runner }}", workflow)
         for repository in (
             "tier4/autoware_auto_msgs",
             "tier4/tier4_autoware_msgs",

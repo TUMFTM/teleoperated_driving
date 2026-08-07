@@ -13,19 +13,41 @@ permissions:
   packages: write
 
 jobs:
-  publish:
+  build:
     name: ${{ matrix.name }}
-    runs-on: ubuntu-22.04
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - name: operator
+          - name: operator-amd64
+            package: operator
             target: tod_operator
             image: ghcr.io/sl-kai/teleoperated-driving-operator
-          - name: vehicle
+            platform: linux/amd64
+            arch: amd64
+            runner: ubuntu-22.04
+          - name: operator-arm64
+            package: operator
+            target: tod_operator
+            image: ghcr.io/sl-kai/teleoperated-driving-operator
+            platform: linux/arm64
+            arch: arm64
+            runner: ubuntu-24.04-arm
+          - name: vehicle-amd64
+            package: vehicle
             target: tod_vehicle
             image: ghcr.io/sl-kai/teleoperated-driving-vehicle
+            platform: linux/amd64
+            arch: amd64
+            runner: ubuntu-22.04
+          - name: vehicle-arm64
+            package: vehicle
+            target: tod_vehicle
+            image: ghcr.io/sl-kai/teleoperated-driving-vehicle
+            platform: linux/arm64
+            arch: arm64
+            runner: ubuntu-24.04-arm
 
     steps:
       - name: Check out source
@@ -59,8 +81,69 @@ jobs:
           ref: f3ee114e1f3bf66a4df96d7dbfa209903c9cb75a
           path: src/external/autoware/messages/autoware_msgs
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/dockerfile
+          target: ${{ matrix.target }}
+          platforms: ${{ matrix.platform }}
+          outputs: type=image,name=${{ matrix.image }},push-by-digest=true,name-canonical=true,push=true
+          build-args: |
+            DOCKER_ROS_DISTRO=humble
+            DOCKER_UID=1000
+            DOCKER_GID=1000
+            DOCKER_USERNAME=tum
+            VEHICLE_BUILD_ARGS=--cmake-args -DVEHICLE=ON -DOPERATOR=OFF -DCMAKE_BUILD_TYPE=Release
+            OPERATOR_BUILD_ARGS=--cmake-args -DVEHICLE=OFF -DOPERATOR=ON -DCMAKE_BUILD_TYPE=Release
+          cache-from: type=gha,scope=${{ matrix.target }}-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.target }}-${{ matrix.arch }}
+
+      - name: Export digest
+        shell: bash
+        run: |
+          mkdir -p "${RUNNER_TEMP}/digests"
+          digest="${{ steps.build.outputs.digest }}"
+          touch "${RUNNER_TEMP}/digests/${digest#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.package }}-digests-${{ matrix.arch }}
+          path: ${{ runner.temp }}/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    name: merge-${{ matrix.package }}
+    needs: build
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        include:
+          - package: operator
+            image: ghcr.io/sl-kai/teleoperated-driving-operator
+          - package: vehicle
+            image: ghcr.io/sl-kai/teleoperated-driving-vehicle
+
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          pattern: ${{ matrix.package }}-digests-*
+          path: ${{ runner.temp }}/digests
+          merge-multiple: true
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -83,22 +166,19 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
 
-      - name: Build and publish
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: docker/dockerfile
-          target: ${{ matrix.target }}
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            DOCKER_ROS_DISTRO=humble
-            DOCKER_UID=1000
-            DOCKER_GID=1000
-            DOCKER_USERNAME=tum
-            VEHICLE_BUILD_ARGS=--cmake-args -DVEHICLE=ON -DOPERATOR=OFF -DCMAKE_BUILD_TYPE=Release
-            OPERATOR_BUILD_ARGS=--cmake-args -DVEHICLE=OFF -DOPERATOR=ON -DCMAKE_BUILD_TYPE=Release
-          cache-from: type=gha,scope=${{ matrix.target }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.target }}
+      - name: Create multi-architecture image
+        shell: bash
+        env:
+          IMAGE: ${{ matrix.image }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          sources=()
+          for digest_file in "${RUNNER_TEMP}/digests/"*; do
+            sources+=("${IMAGE}@sha256:$(basename "${digest_file}")")
+          done
+
+          while IFS= read -r tag; do
+            [ -n "${tag}" ] || continue
+            docker buildx imagetools create --tag "${tag}" "${sources[@]}"
+            docker buildx imagetools inspect "${tag}"
+          done <<< "${TAGS}"
