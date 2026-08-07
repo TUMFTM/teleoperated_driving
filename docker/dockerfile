@@ -47,9 +47,10 @@ RUN set -eux; \
 
 ###--- Install basic apt packages -----------------------------------------------###
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
     cmake \
-    make \
     pkg-config \
+    python3-dev \
     git \
     software-properties-common
 

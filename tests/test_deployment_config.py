@@ -60,7 +60,7 @@ class DeploymentConfigTests(unittest.TestCase):
         env = (REPO / ".env").read_text(encoding="utf-8")
         dockerfile = (REPO / "docker/dockerfile").read_text(encoding="utf-8")
 
-        self.assertEqual(env.count("--parallel-workers 1"), 2)
+        self.assertNotIn("--parallel-workers 1", env)
         self.assertIn("COPY ./docker/colcon_retry.sh", dockerfile)
         self.assertIn("COPY ./docker/rosdep_retry.sh", dockerfile)
         self.assertIn("colcon_retry vehicle", dockerfile)
@@ -70,7 +70,16 @@ class DeploymentConfigTests(unittest.TestCase):
         colcon_retry = (REPO / "docker/colcon_retry.sh").read_text(encoding="utf-8")
         rosdep_retry = (REPO / "docker/rosdep_retry.sh").read_text(encoding="utf-8")
         self.assertIn('COLCON_RETRY_MAX:-5', colcon_retry)
+        self.assertIn('COLCON_PARALLEL_WORKERS:-2', colcon_retry)
+        self.assertIn('--parallel-workers "$parallel_workers"', colcon_retry)
+        self.assertNotIn("MAKEFLAGS=-j1", colcon_retry)
         self.assertIn('ROSDEP_RETRY_MAX:-5', rosdep_retry)
+
+    def test_base_image_has_native_and_python_build_dependencies(self):
+        dockerfile = (REPO / "docker/dockerfile").read_text(encoding="utf-8")
+
+        self.assertIn("build-essential", dockerfile)
+        self.assertIn("python3-dev", dockerfile)
 
     def test_xauthority_mount_uses_container_target(self):
         compose = (REPO / "docker-compose.yaml").read_text(encoding="utf-8")

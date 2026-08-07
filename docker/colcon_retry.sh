@@ -9,6 +9,8 @@ if [[ $# -gt 0 ]]; then
 fi
 
 max_attempts="${COLCON_RETRY_MAX:-5}"
+parallel_workers="${COLCON_PARALLEL_WORKERS:-2}"
+cmake_parallel_level="${CMAKE_BUILD_PARALLEL_LEVEL:-1}"
 
 clean_failed_packages() {
   local log_file="$1"
@@ -41,7 +43,8 @@ while [[ "$attempt" -le "$max_attempts" ]]; do
   log_file="/tmp/${label}-colcon-attempt-${attempt}.log"
   echo "== ${label} colcon attempt ${attempt}/${max_attempts} =="
 
-  MAKEFLAGS=-j1 CMAKE_BUILD_PARALLEL_LEVEL=1 colcon build "$@" 2>&1 | tee "$log_file"
+  CMAKE_BUILD_PARALLEL_LEVEL="$cmake_parallel_level" \
+    colcon build --parallel-workers "$parallel_workers" "$@" 2>&1 | tee "$log_file"
   status="${PIPESTATUS[0]}"
 
   if [[ "$status" -eq 0 ]]; then
