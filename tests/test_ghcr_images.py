@@ -82,6 +82,16 @@ class GhcrImageTest(unittest.TestCase):
         self.assertIn("docker/login-action", workflow)
         self.assertIn("docker/build-push-action", workflow)
 
+    def test_workflow_imports_source_dependencies_before_building(self):
+        workflow = WORKFLOW.read_text(encoding="utf-8")
+
+        self.assertIn("python3-vcstool", workflow)
+        self.assertIn("vcs import src < dependencies.repos", workflow)
+        self.assertLess(
+            workflow.index("vcs import src < dependencies.repos"),
+            workflow.index("docker/build-push-action"),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -31,6 +31,12 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v4
 
+      - name: Import source dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-vcstool
+          vcs import src < dependencies.repos
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
