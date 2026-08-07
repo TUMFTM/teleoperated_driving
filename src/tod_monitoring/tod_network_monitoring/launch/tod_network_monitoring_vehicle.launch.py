@@ -22,6 +22,13 @@ def generate_launch_description():
         description='Path to the config folder.'
     )
 
+    network_interface = LaunchConfiguration('vehicleNetworkInterface')
+    network_interface_arg = DeclareLaunchArgument(
+        'vehicleNetworkInterface',
+        default_value='eth0',
+        description='Vehicle network interface to monitor.'
+    )
+
     node_param_path = PathJoinSubstitution([
         config_path,
         'package_config',
@@ -34,7 +41,7 @@ def generate_launch_description():
         namespace=namespace,
         executable='network_monitor',
         name='network_monitor',
-        parameters=[node_param_path]
+        parameters=[node_param_path, {'network_interface': network_interface}]
     )
     
     packet_logger_vehicle_node = Node(
@@ -42,11 +49,12 @@ def generate_launch_description():
         namespace=namespace,
         executable='packet_logger',
         name='packet_logger',
-        parameters=[node_param_path]
+        parameters=[node_param_path, {'network_interface': network_interface}]
     )
     
     return LaunchDescription([
         config_path_arg,
+        network_interface_arg,
         network_monitoring_vehicle_node,
         packet_logger_vehicle_node
     ])

@@ -1,0 +1,34 @@
+/**:
+  ros__parameters:
+    type: "Usb"
+
+    button_config:
+      IndicatorLeft: 11
+      IndicatorRight: 10
+      FlashLight: 24
+      FrontLight: 9
+      Honk: 23
+      IncreaseSpeed: 19
+      DecreaseSpeed: 20
+      IncreaseGear: 4
+      DecreaseGear: 5
+
+    axis_config:
+      Steering: 0
+      Throttle: 2
+      Brake: 3
+
+    input_device_has_separate_braking_axis: true
+
+    invert_axis:
+      Steering: true
+      Throttle: true
+      Brake: true
+
+    correction: "6,\
+      1,0,32767,32767,16384,16384,\
+      1,0,127,127,4227330,4227330,\
+      1,0,127,127,4227330,4227330,\
+      1,0,127,127,4227330,4227330,\
+      1,0,0,0,536870912,536870912,\
+      1,0,0,0,536870912,536870912"
