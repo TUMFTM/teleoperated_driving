@@ -272,6 +272,9 @@ COPY --from=tod_vehicle_builder \
 USER root
 RUN mkdir -p /opt/tod-tools
 COPY --chmod=0755 work/peanut01_lidar_domain_bridge.py \
+                  work/peanut01_control_bridge.py \
+                  work/peanut01_control_mapping.py \
+                  work/peanut01_control_supervisor.py \
                   work/peanut01_vehicle_state_bridge.py \
                   work/peanut01_vehicle_state_mapping.py \
                   /opt/tod-tools/

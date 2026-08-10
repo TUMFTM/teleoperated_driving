@@ -2,3 +2,15 @@
   ros__parameters:
     steering_ratio: 16.0
     command_timeout_ms: 300
+
+/vehicle/interface/peanut01/ControlBridge:
+  ros__parameters:
+    enable_actuation: false
+    source_domain_id: 7
+    target_domain_id: 0
+    command_timeout_ms: 300
+    feedback_timeout_ms: 300
+    arming_duration_ms: 1000
+    stopped_velocity_mps: 0.02
+    steering_ratio: 16.0
+    publish_rate_hz: 20.0

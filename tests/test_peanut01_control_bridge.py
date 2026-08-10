@@ -2,9 +2,14 @@ import ast
 import pathlib
 import unittest
 
+import yaml
+
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 BRIDGE = ROOT / "work/peanut01_control_bridge.py"
+PARAMS = ROOT / "config/config/package_config/tod_peanut01_interface/params.yaml"
+LAUNCH = ROOT / "src/tod_launch/launch/tod_vehicle_peanut01_video.launch.py"
+DOCKERFILE = ROOT / "docker/dockerfile"
 
 
 class Peanut01ControlBridgeContractTest(unittest.TestCase):
@@ -59,6 +64,41 @@ class Peanut01ControlBridgeContractTest(unittest.TestCase):
         self.assertNotIn("socketcan", text.lower())
         self.assertNotIn("python-can", text.lower())
         self.assertNotIn("can_mingnuo", text.lower())
+
+    def test_shared_parameters_default_actuation_to_disabled(self):
+        params = yaml.safe_load(PARAMS.read_text(encoding="utf-8"))
+        node = params["/vehicle/interface/peanut01/ControlBridge"][
+            "ros__parameters"
+        ]
+
+        self.assertFalse(node["enable_actuation"])
+        self.assertEqual(7, node["source_domain_id"])
+        self.assertEqual(0, node["target_domain_id"])
+        self.assertEqual(300, node["command_timeout_ms"])
+        self.assertEqual(300, node["feedback_timeout_ms"])
+        self.assertEqual(1000, node["arming_duration_ms"])
+        self.assertEqual(0.02, node["stopped_velocity_mps"])
+        self.assertEqual(16.0, node["steering_ratio"])
+        self.assertEqual(20.0, node["publish_rate_hz"])
+        self.assertNotIn("max_velocity", node)
+
+    def test_vehicle_launch_starts_bridge_with_shared_parameters(self):
+        text = LAUNCH.read_text(encoding="utf-8")
+
+        self.assertIn("/opt/tod-tools/peanut01_control_bridge.py", text)
+        self.assertIn("tod_peanut01_interface", text)
+        self.assertIn('"--params-file"', text)
+
+    def test_vehicle_image_contains_all_control_bridge_modules(self):
+        text = DOCKERFILE.read_text(encoding="utf-8")
+
+        for module in (
+            "peanut01_control_mapping.py",
+            "peanut01_control_supervisor.py",
+            "peanut01_control_bridge.py",
+        ):
+            with self.subTest(module=module):
+                self.assertIn(module, text)
 
 
 if __name__ == "__main__":

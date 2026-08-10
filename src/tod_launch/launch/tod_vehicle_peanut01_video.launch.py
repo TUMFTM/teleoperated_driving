@@ -22,6 +22,9 @@ def generate_launch_description():
     lidar_params = os.path.join(
         config_dir, "package_config", "tod_lidar", "params.yaml"
     )
+    control_bridge_params = os.path.join(
+        config_dir, "package_config", "tod_peanut01_interface", "params.yaml"
+    )
     sensor_domain_id = os.getenv("TOD_LIDAR_SENSOR_DOMAIN_ID", "0")
     description.add_action(
         Node(
@@ -68,6 +71,21 @@ def generate_launch_description():
     description.add_action(
         ExecuteProcess(
             cmd=["python3", "/opt/tod-tools/peanut01_vehicle_state_bridge.py"],
+            output="screen",
+            respawn=True,
+            respawn_delay=2.0,
+        )
+    )
+    description.add_action(
+        ExecuteProcess(
+            cmd=[
+                "python3",
+                "/opt/tod-tools/peanut01_control_bridge.py",
+                "--ros-args",
+                "--params-file",
+                control_bridge_params,
+            ],
+            additional_env={"TOD_CONTROL_TARGET_DOMAIN_ID": "0"},
             output="screen",
             respawn=True,
             respawn_delay=2.0,
