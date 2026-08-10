@@ -204,6 +204,18 @@ RUN --mount=type=bind,source=src,target=/home/${DOCKER_USERNAME}/wsp/src \
     source /opt/ros/${ROS_DISTRO}/setup.bash \
     && colcon_retry vehicle ${VEHICLE_BUILD_ARGS}
 
+# The safety gate is required by every vehicle launch profile. Build and verify
+# it explicitly so an incomplete generic workspace install fails at image build.
+# Root is required here because BuildKit owns context mounts and may preserve a
+# restrictive source-directory mode that hides the package from the build user.
+USER root
+RUN --mount=type=bind,source=src,target=/home/${DOCKER_USERNAME}/wsp/src \
+    source /opt/ros/${ROS_DISTRO}/setup.bash \
+    && source install/setup.bash \
+    && colcon_retry vehicle-safety --packages-select tod_safety_gate ${VEHICLE_BUILD_ARGS} \
+    && test -x install/tod_safety_gate/lib/tod_safety_gate/safety_gate
+USER ${DOCKER_USERNAME}
+
 
 ###################################################################################
 ###--- tod_operator_builder --Builder-------------------------------------------###

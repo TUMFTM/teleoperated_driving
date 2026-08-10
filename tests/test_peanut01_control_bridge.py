@@ -100,6 +100,14 @@ class Peanut01ControlBridgeContractTest(unittest.TestCase):
             with self.subTest(module=module):
                 self.assertIn(module, text)
 
+    def test_vehicle_builder_requires_installed_safety_gate(self):
+        text = DOCKERFILE.read_text(encoding="utf-8")
+
+        self.assertIn("--packages-select tod_safety_gate", text)
+        self.assertIn(
+            "install/tod_safety_gate/lib/tod_safety_gate/safety_gate", text
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
