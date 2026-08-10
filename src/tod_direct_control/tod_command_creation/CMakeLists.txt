@@ -29,4 +29,13 @@ install(
     )
     
 ament_export_dependencies(rclcpp tod_operator_msgs tod_status_msgs tod_vehicle_msgs tod_helper tod_core)
+
+if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+  ament_add_gtest(test_gear_selector test/test_gear_selector.cpp)
+  ament_target_dependencies(test_gear_selector tod_vehicle_msgs)
+  target_include_directories(
+    test_gear_selector PRIVATE include ${tod_vehicle_msgs_INCLUDE_DIRS})
+endif()
+
 ament_package()
