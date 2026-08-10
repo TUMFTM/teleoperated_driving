@@ -15,6 +15,7 @@
 #include "tod_vehicle_msgs/msg/secondary_control_cmd.hpp"
 #include "tod_vehicle_msgs/VehicleEnums.h"
 #include "tod_operator_msgs/joystickConfig.h"
+#include "tod_command_creation/gear_selector.hpp"
 #include <tod_helper/vehicle/Model.h>
 #include <utility>
 #include <stdio.h>
@@ -58,6 +59,7 @@ private:
     tod_vehicle_msgs::msg::PrimaryControlCmd _primaryControlMsg;     ///< Primary control message.
     tod_vehicle_msgs::msg::SecondaryControlCmd _secondaryControlMsg; ///< Secondary control message.
     std::unique_ptr<tod_core::param_set::Vehicle> vehicleParamHandler_;     ///< Vehicle parameter handler.
+    std::unique_ptr<GearSelector> _gearSelector;
 
     bool _constraintSteeringRate{false};
     bool _invertSteeringInGearReverse{false};

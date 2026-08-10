@@ -57,6 +57,16 @@ tod_command_creation::CommandCreator::CommandCreator() : Node("CommandCreator"),
     this->declare_parameter<float>("maxAcceleration", 4.0f);
     this->declare_parameter<float>("maxDeceleration", 9.0f);
     this->declare_parameter<double>("maxSteeringWheelAngleRate", 7.5);
+    const int minGear = this->declare_parameter<int>("minGearPosition", eGearPosition::GEARPOSITION_PARK);
+    const int maxGear = this->declare_parameter<int>("maxGearPosition", eGearPosition::GEARPOSITION_SPORT);
+    const int defaultGear = this->declare_parameter<int>("defaultGearPosition", eGearPosition::GEARPOSITION_PARK);
+
+    try {
+        _gearSelector = std::make_unique<GearSelector>(minGear, maxGear, defaultGear);
+    } catch (const std::invalid_argument &error) {
+        RCLCPP_FATAL(this->get_logger(), "Invalid gear configuration: %s", error.what());
+        throw;
+    }
 
 
      if (!this->get_parameter("ConstraintSteeringRate", _constraintSteeringRate))
@@ -86,6 +96,8 @@ tod_command_creation::CommandCreator::CommandCreator() : Node("CommandCreator"),
     if (!this->get_parameter("vehicleID", _vehicleID))
         RCLCPP_ERROR_STREAM(this->get_logger(), this->get_name() << ": Could not set param /vehicleID - using "
                                                    << _vehicleID);
+
+    init_control_messages();
 }
 
 void tod_command_creation::CommandCreator::timer_callback() 
@@ -204,24 +216,16 @@ void tod_command_creation::CommandCreator::calculate_desired_velocity(tod_vehicl
 void tod_command_creation::CommandCreator::set_gear(tod_vehicle_msgs::msg::SecondaryControlCmd &out, const std::vector<int> &buttonState,
         const float &currentVelocity) 
 {
-    static int maxGear{4};
-    static int minGear{0};
+    const bool increaseEdge =
+        buttonState.at(joystick::ButtonPos::INCREASE_GEAR) == 1 &&
+        _prevButtonState.at(joystick::ButtonPos::INCREASE_GEAR) == 0;
+    const bool decreaseEdge =
+        buttonState.at(joystick::ButtonPos::DECREASE_GEAR) == 1 &&
+        _prevButtonState.at(joystick::ButtonPos::DECREASE_GEAR) == 0;
 
-    if (currentVelocity >= 0.01)
-        return;
+    out.gear_position = _gearSelector->select(
+        out.gear_position, increaseEdge, decreaseEdge, currentVelocity);
 
-    // Increase Gear
-    if (buttonState.at(joystick::ButtonPos::INCREASE_GEAR) == 1
-        && _prevButtonState.at(joystick::ButtonPos::INCREASE_GEAR) == 0) {
-        if (out.gear_position < maxGear)
-            out.gear_position += 1;
-    }
-    // Decrease Gear
-    if (buttonState.at(joystick::ButtonPos::DECREASE_GEAR) == 1
-        && _prevButtonState.at(joystick::ButtonPos::DECREASE_GEAR) == 0) {
-        if (out.gear_position > minGear)
-            out.gear_position -= 1;
-    }
     _prevButtonState.at(joystick::ButtonPos::INCREASE_GEAR) = buttonState.at(joystick::ButtonPos::INCREASE_GEAR);
     _prevButtonState.at(joystick::ButtonPos::DECREASE_GEAR) = buttonState.at(joystick::ButtonPos::DECREASE_GEAR);
 }
@@ -272,7 +276,7 @@ void tod_command_creation::CommandCreator::init_control_messages()
     _primaryControlMsg.acceleration = 0;
     _primaryControlMsg.steering_wheel_angle = 0;
     _primaryControlMsg.velocity = 0;
-    _secondaryControlMsg.gear_position = 0;
+    _secondaryControlMsg.gear_position = _gearSelector->default_gear();
     _secondaryControlMsg.head_light = 0;
     _secondaryControlMsg.honk = 0;
     _secondaryControlMsg.indicator = 0;

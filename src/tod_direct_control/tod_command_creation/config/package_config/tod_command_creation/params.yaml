@@ -6,4 +6,6 @@
     maxAcceleration:              4.0   # m/s2
     maxDeceleration:              9.0   # m/s2
     maxSteeringWheelAngleRate:    7.6   # rad/s
-    
+    minGearPosition:              0
+    maxGearPosition:              4
+    defaultGearPosition:          0
