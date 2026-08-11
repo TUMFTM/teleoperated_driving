@@ -2,6 +2,8 @@ import dataclasses
 import pathlib
 import runpy
 
+import pytest
+
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SUPERVISOR = ROOT / "work/peanut01_control_supervisor.py"
@@ -37,6 +39,7 @@ def ready_snapshot(now_ns=1_000_000_000):
         mcu_direction=0,
         mcu_gear=0,
         mcu_brake_locked=True,
+        software_neutral=True,
     )
 
 
@@ -163,7 +166,7 @@ def test_arming_requires_neutral_zero_motion_safety_approvals_and_safe_mcu_state
         "MCU power down": {"mcu_power_up": False},
         "MCU enabled": {"mcu_enabled": True},
         "brake unlocked": {"mcu_brake_locked": False},
-        "MCU not neutral": {"mcu_gear": 1},
+        "software neutral unavailable": {"software_neutral": False},
         "F710 override": {"local_override": True},
     }
     for name, changes in mutations.items():
@@ -176,6 +179,31 @@ def test_arming_requires_neutral_zero_motion_safety_approvals_and_safe_mcu_state
         assert not decision.request_autonomous, name
         assert not supervisor.step(ready_snapshot(2_000_000_000)).request_autonomous
         assert supervisor.step(ready_snapshot(3_000_000_000)).request_autonomous
+
+
+@pytest.mark.parametrize("retained_gear", (1, 2))
+def test_arming_accepts_software_neutral_with_retained_feedback_gear(retained_gear):
+    supervisor = Supervisor(Parameters())
+    supervisor.request_enable(True)
+
+    first = dataclasses.replace(ready_snapshot(), mcu_gear=retained_gear)
+    stable = dataclasses.replace(
+        ready_snapshot(2_000_000_000), mcu_gear=retained_gear
+    )
+
+    assert not supervisor.step(first).request_autonomous
+    assert supervisor.step(stable).request_autonomous
+
+
+def test_arming_rejects_missing_software_neutral_with_feedback_neutral():
+    supervisor = Supervisor(Parameters())
+    supervisor.request_enable(True)
+
+    unavailable = dataclasses.replace(ready_snapshot(), software_neutral=False)
+
+    assert not supervisor.step(unavailable).request_autonomous
+    assert not supervisor.step(ready_snapshot(2_000_000_000)).request_autonomous
+    assert supervisor.step(ready_snapshot(3_000_000_000)).request_autonomous
 
 
 def active_snapshot(now_ns=2_100_000_000, **changes):
@@ -269,7 +297,7 @@ def test_drive_execution_mismatches_fault_after_500_ms():
         assert "execution feedback mismatch" in decision.reason, name
 
 
-def test_neutral_and_zero_speed_execution_require_disabled_locked_state():
+def test_neutral_execution_accepts_software_neutral_with_retained_drive_feedback():
     supervisor = make_active_supervisor()
     drive = active_snapshot(
         requested_velocity_mps=0.05,
@@ -290,7 +318,7 @@ def test_neutral_and_zero_speed_execution_require_disabled_locked_state():
         elapsed_ns=400_000_000,
         mcu_enabled=False,
         mcu_direction=0,
-        mcu_gear=0,
+        mcu_gear=1,
         mcu_brake_locked=True,
     )
 
@@ -302,6 +330,17 @@ def test_neutral_execution_mismatch_faults_after_timeout():
     neutral = active_snapshot(mcu_enabled=True, mcu_gear=1, mcu_brake_locked=False)
     supervisor.step(neutral)
 
+    decision = supervisor.step(fresh_late_snapshot(neutral))
+
+    assert decision.state is State.FAULT
+    assert decision.publish_stop
+
+
+def test_neutral_execution_missing_software_neutral_faults_after_timeout():
+    supervisor = make_active_supervisor()
+    neutral = active_snapshot(mcu_gear=1, software_neutral=False)
+
+    assert supervisor.step(neutral).state is State.ACTIVE
     decision = supervisor.step(fresh_late_snapshot(neutral))
 
     assert decision.state is State.FAULT

@@ -42,6 +42,7 @@ class InputSnapshot:
     mcu_direction: int
     mcu_gear: int
     mcu_brake_locked: bool
+    software_neutral: bool
 
 
 @dataclasses.dataclass(frozen=True)
@@ -109,7 +110,7 @@ def input_ready(snapshot, params):
         and snapshot.mcu_power_up
         and not snapshot.mcu_enabled
         and snapshot.mcu_brake_locked
-        and snapshot.mcu_gear == 0
+        and snapshot.software_neutral
     )
 
 
@@ -220,7 +221,7 @@ class Supervisor:
             )
         matches = not snapshot.mcu_enabled and snapshot.mcu_brake_locked
         if self._execution_expected == "stopped_neutral":
-            matches = matches and snapshot.mcu_gear == 0
+            matches = matches and snapshot.software_neutral
         return matches
 
     @property
