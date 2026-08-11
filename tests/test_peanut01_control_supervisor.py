@@ -67,6 +67,10 @@ def test_starts_disabled_even_when_configuration_requested_true():
     assert supervisor.state is State.DISABLED
 
 
+def test_default_execution_confirmation_timeout_is_one_second():
+    assert Parameters().execution_confirmation_timeout_ns == 1_000_000_000
+
+
 def test_requires_one_second_of_continuous_readiness():
     supervisor = Supervisor(Parameters())
 
@@ -261,7 +265,7 @@ def test_reverse_execution_accepts_measured_direction_after_500_ms():
     assert confirmed.publish_commands
 
 
-def fresh_late_snapshot(snapshot, elapsed_ns=500_000_001, **changes):
+def fresh_late_snapshot(snapshot, elapsed_ns=1_000_000_001, **changes):
     now_ns = snapshot.now_ns + elapsed_ns
     return dataclasses.replace(
         snapshot,
@@ -272,6 +276,19 @@ def fresh_late_snapshot(snapshot, elapsed_ns=500_000_001, **changes):
         feedback_stamp_ns=now_ns,
         **changes,
     )
+
+
+def test_execution_mismatch_is_tolerated_before_one_second_timeout():
+    supervisor = make_active_supervisor()
+    requested = active_snapshot(requested_velocity_mps=0.05, tod_gear=3)
+    supervisor.step(requested)
+
+    decision = supervisor.step(
+        fresh_late_snapshot(requested, elapsed_ns=999_000_000)
+    )
+
+    assert decision.state is State.ACTIVE
+    assert decision.publish_commands
 
 
 def test_drive_execution_rejects_obsolete_direction_after_timeout():

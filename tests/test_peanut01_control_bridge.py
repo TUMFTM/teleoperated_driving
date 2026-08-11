@@ -157,7 +157,7 @@ class Peanut01ControlBridgeContractTest(unittest.TestCase):
         self.assertEqual(300, node["feedback_timeout_ms"])
         self.assertEqual("/vehicle/can/raw", node["can_feedback_topic"])
         self.assertEqual(300, node["can_feedback_timeout_ms"])
-        self.assertEqual(500, node["execution_confirmation_timeout_ms"])
+        self.assertEqual(1000, node["execution_confirmation_timeout_ms"])
         self.assertEqual(1000, node["arming_duration_ms"])
         self.assertEqual(0.02, node["stopped_velocity_mps"])
         self.assertEqual(16.0, node["steering_ratio"])

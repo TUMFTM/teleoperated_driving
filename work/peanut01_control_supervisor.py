@@ -15,7 +15,7 @@ class Parameters:
     command_timeout_ns: int = 300_000_000
     feedback_timeout_ns: int = 300_000_000
     arming_duration_ns: int = 1_000_000_000
-    execution_confirmation_timeout_ns: int = 500_000_000
+    execution_confirmation_timeout_ns: int = 1_000_000_000
     stopped_velocity_mps: float = 0.02
 
 

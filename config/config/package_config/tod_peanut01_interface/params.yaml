@@ -12,7 +12,7 @@
     feedback_timeout_ms: 300
     can_feedback_topic: /vehicle/can/raw
     can_feedback_timeout_ms: 300
-    execution_confirmation_timeout_ms: 500
+    execution_confirmation_timeout_ms: 1000
     arming_duration_ms: 1000
     stopped_velocity_mps: 0.02
     steering_ratio: 16.0

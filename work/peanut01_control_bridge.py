@@ -628,7 +628,7 @@ def declare_config(source_node):
             source_node.declare_parameter("can_feedback_timeout_ms", 300).value
         ),
         "execution_confirmation_timeout_ms": int(
-            source_node.declare_parameter("execution_confirmation_timeout_ms", 500).value
+            source_node.declare_parameter("execution_confirmation_timeout_ms", 1000).value
         ),
         "arming_duration_ms": int(
             source_node.declare_parameter("arming_duration_ms", 1000).value
