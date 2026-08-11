@@ -2,7 +2,7 @@
   ros__parameters:
     InvertSteeringInGearReverse:  true
     ConstraintSteeringRate:       false
-    maxVelocity:                  0.8
+    maxVelocity:                  0.05
     maxAcceleration:              4.0
     maxDeceleration:              9.0
     maxSteeringWheelAngleRate:    7.6

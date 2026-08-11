@@ -10,6 +10,9 @@
     target_domain_id: 0
     command_timeout_ms: 300
     feedback_timeout_ms: 300
+    can_feedback_topic: /vehicle/can/raw
+    can_feedback_timeout_ms: 300
+    execution_confirmation_timeout_ms: 500
     arming_duration_ms: 1000
     stopped_velocity_mps: 0.02
     steering_ratio: 16.0

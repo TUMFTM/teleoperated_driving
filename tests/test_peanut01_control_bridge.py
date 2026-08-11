@@ -147,6 +147,9 @@ class Peanut01ControlBridgeContractTest(unittest.TestCase):
         self.assertEqual(0, node["target_domain_id"])
         self.assertEqual(300, node["command_timeout_ms"])
         self.assertEqual(300, node["feedback_timeout_ms"])
+        self.assertEqual("/vehicle/can/raw", node["can_feedback_topic"])
+        self.assertEqual(300, node["can_feedback_timeout_ms"])
+        self.assertEqual(500, node["execution_confirmation_timeout_ms"])
         self.assertEqual(1000, node["arming_duration_ms"])
         self.assertEqual(0.02, node["stopped_velocity_mps"])
         self.assertEqual(16.0, node["steering_ratio"])
@@ -164,6 +167,7 @@ class Peanut01ControlBridgeContractTest(unittest.TestCase):
         text = DOCKERFILE.read_text(encoding="utf-8")
 
         for module in (
+            "peanut01_can_feedback.py",
             "peanut01_control_mapping.py",
             "peanut01_control_supervisor.py",
             "peanut01_control_bridge.py",

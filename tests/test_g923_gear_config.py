@@ -17,7 +17,7 @@ class G923GearConfigTest(unittest.TestCase):
         self.assertEqual(1, params["minGearPosition"])
         self.assertEqual(3, params["maxGearPosition"])
         self.assertEqual(2, params["defaultGearPosition"])
-        self.assertEqual(0.8, params["maxVelocity"])
+        self.assertEqual(0.05, params["maxVelocity"])
 
     def test_g923_paddles_keep_the_existing_button_mapping(self):
         config = yaml.safe_load(G923_PARAMS.read_text(encoding="utf-8"))
