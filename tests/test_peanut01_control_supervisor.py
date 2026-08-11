@@ -211,7 +211,7 @@ def active_snapshot(now_ns=2_100_000_000, **changes):
     return dataclasses.replace(base, **changes)
 
 
-def test_drive_execution_can_confirm_within_500_ms():
+def test_drive_execution_accepts_measured_direction_after_500_ms():
     supervisor = make_active_supervisor()
     requested = active_snapshot(requested_velocity_mps=0.05, tod_gear=3)
 
@@ -219,13 +219,13 @@ def test_drive_execution_can_confirm_within_500_ms():
     confirmed = supervisor.step(
         dataclasses.replace(
             requested,
-            now_ns=requested.now_ns + 400_000_000,
-            primary_stamp_ns=requested.now_ns + 400_000_000,
-            secondary_stamp_ns=requested.now_ns + 400_000_000,
-            status_stamp_ns=requested.now_ns + 400_000_000,
-            feedback_stamp_ns=requested.now_ns + 400_000_000,
+            now_ns=requested.now_ns + 500_000_001,
+            primary_stamp_ns=requested.now_ns + 500_000_001,
+            secondary_stamp_ns=requested.now_ns + 500_000_001,
+            status_stamp_ns=requested.now_ns + 500_000_001,
+            feedback_stamp_ns=requested.now_ns + 500_000_001,
             mcu_enabled=True,
-            mcu_direction=1,
+            mcu_direction=2,
             mcu_gear=1,
             mcu_brake_locked=False,
         )
@@ -237,7 +237,7 @@ def test_drive_execution_can_confirm_within_500_ms():
     assert confirmed.publish_commands
 
 
-def test_reverse_execution_requires_reverse_direction_and_gear():
+def test_reverse_execution_accepts_measured_direction_after_500_ms():
     supervisor = make_active_supervisor()
     requested = active_snapshot(requested_velocity_mps=-0.05, tod_gear=1)
     supervisor.step(requested)
@@ -245,13 +245,13 @@ def test_reverse_execution_requires_reverse_direction_and_gear():
     confirmed = supervisor.step(
         dataclasses.replace(
             requested,
-            now_ns=requested.now_ns + 400_000_000,
-            primary_stamp_ns=requested.now_ns + 400_000_000,
-            secondary_stamp_ns=requested.now_ns + 400_000_000,
-            status_stamp_ns=requested.now_ns + 400_000_000,
-            feedback_stamp_ns=requested.now_ns + 400_000_000,
+            now_ns=requested.now_ns + 500_000_001,
+            primary_stamp_ns=requested.now_ns + 500_000_001,
+            secondary_stamp_ns=requested.now_ns + 500_000_001,
+            status_stamp_ns=requested.now_ns + 500_000_001,
+            feedback_stamp_ns=requested.now_ns + 500_000_001,
             mcu_enabled=True,
-            mcu_direction=2,
+            mcu_direction=1,
             mcu_gear=2,
             mcu_brake_locked=False,
         )
@@ -272,6 +272,44 @@ def fresh_late_snapshot(snapshot, elapsed_ns=500_000_001, **changes):
         feedback_stamp_ns=now_ns,
         **changes,
     )
+
+
+def test_drive_execution_rejects_obsolete_direction_after_timeout():
+    supervisor = make_active_supervisor()
+    requested = active_snapshot(requested_velocity_mps=0.05, tod_gear=3)
+    supervisor.step(requested)
+
+    decision = supervisor.step(
+        fresh_late_snapshot(
+            requested,
+            mcu_enabled=True,
+            mcu_brake_locked=False,
+            mcu_direction=1,
+            mcu_gear=1,
+        )
+    )
+
+    assert decision.state is State.FAULT
+    assert decision.publish_stop
+
+
+def test_reverse_execution_rejects_obsolete_direction_after_timeout():
+    supervisor = make_active_supervisor()
+    requested = active_snapshot(requested_velocity_mps=-0.05, tod_gear=1)
+    supervisor.step(requested)
+
+    decision = supervisor.step(
+        fresh_late_snapshot(
+            requested,
+            mcu_enabled=True,
+            mcu_brake_locked=False,
+            mcu_direction=2,
+            mcu_gear=2,
+        )
+    )
+
+    assert decision.state is State.FAULT
+    assert decision.publish_stop
 
 
 @pytest.mark.parametrize(
@@ -337,7 +375,7 @@ def test_neutral_execution_accepts_software_neutral_with_retained_drive_feedback
         requested_velocity_mps=0.05,
         tod_gear=3,
         mcu_enabled=True,
-        mcu_direction=1,
+        mcu_direction=2,
         mcu_gear=1,
         mcu_brake_locked=False,
     )

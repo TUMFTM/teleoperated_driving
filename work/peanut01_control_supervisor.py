@@ -211,14 +211,14 @@ class Supervisor:
             return (
                 snapshot.mcu_enabled
                 and not snapshot.mcu_brake_locked
-                and snapshot.mcu_direction == 1
+                and snapshot.mcu_direction == 2
                 and snapshot.mcu_gear == 1
             )
         if self._execution_expected == "reverse":
             return (
                 snapshot.mcu_enabled
                 and not snapshot.mcu_brake_locked
-                and snapshot.mcu_direction == 2
+                and snapshot.mcu_direction == 1
                 and snapshot.mcu_gear == 2
             )
         matches = not snapshot.mcu_enabled and snapshot.mcu_brake_locked
