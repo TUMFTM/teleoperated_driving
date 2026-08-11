@@ -114,6 +114,13 @@ class Peanut01ControlBridgeContractTest(unittest.TestCase):
             "mcu_stat1_age_ms",
             "mcu_stat2_age_ms",
             "mcu_error_age_ms",
+            "software_neutral",
+            "command_enabled",
+            "command_mode",
+            "command_gear",
+            "command_brake_mode",
+            "command_motor_rpm",
+            "mcu_command_age_ms",
             "eps_mode",
             "eps_init_status",
             "eps_error_1",
@@ -125,6 +132,7 @@ class Peanut01ControlBridgeContractTest(unittest.TestCase):
         ):
             with self.subTest(key=key):
                 self.assertIn(f'key="{key}"', text)
+        self.assertIn('"software_neutral": feedback.software_neutral', text)
 
     def test_fault_shutdown_is_latched_and_destroys_real_publishers(self):
         text = BRIDGE.read_text(encoding="utf-8")

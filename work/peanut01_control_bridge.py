@@ -295,6 +295,7 @@ class Peanut01ControlBridge:
                 "mcu_direction": feedback.mcu.direction,
                 "mcu_gear": feedback.mcu.gear,
                 "mcu_brake_locked": feedback.mcu.brake_locked,
+                "software_neutral": feedback.software_neutral,
             }
             requested_enable = self.shared.requested_enable
             unsupported = (
@@ -473,6 +474,22 @@ class Peanut01ControlBridge:
             KeyValue(
                 key="longitudinal_approved",
                 value=str(feedback.longitudinal_approved),
+            ),
+            KeyValue(
+                key="software_neutral", value=str(feedback.software_neutral)
+            ),
+            KeyValue(key="command_enabled", value=str(feedback.command.enabled)),
+            KeyValue(key="command_mode", value=str(feedback.command.mode)),
+            KeyValue(key="command_gear", value=str(feedback.command.gear)),
+            KeyValue(
+                key="command_brake_mode", value=str(feedback.command.brake_mode)
+            ),
+            KeyValue(
+                key="command_motor_rpm", value=str(feedback.command.motor_rpm)
+            ),
+            KeyValue(
+                key="mcu_command_age_ms",
+                value=self._age_ms(feedback_ages["mcu_command"]),
             ),
             KeyValue(key="mcu_power_up", value=str(feedback.mcu.power_up)),
             KeyValue(key="mcu_enabled", value=str(feedback.mcu.enabled)),
