@@ -27,6 +27,8 @@ class Peanut01ControlBridgeContractTest(unittest.TestCase):
             "/vehicle/status/control_mode",
             "/minguo/emergency_stop",
             "/minguo/teleop_override",
+            "/vehicle/can/raw",
+            "/vehicle/interface/actuation/from_actuation/safety_driver_status",
             "/debug/tod_peanut01/autoware_control_cmd",
             "/debug/tod_peanut01/autoware_gear_cmd",
             "/debug/tod_peanut01/autoware_turn_indicators_cmd",
@@ -64,6 +66,75 @@ class Peanut01ControlBridgeContractTest(unittest.TestCase):
         self.assertNotIn("socketcan", text.lower())
         self.assertNotIn("python-can", text.lower())
         self.assertNotIn("can_mingnuo", text.lower())
+
+    def test_bridge_projects_read_only_can_feedback_into_tod_safety_status(self):
+        text = BRIDGE.read_text(encoding="utf-8")
+
+        for token in (
+            "from peanut01_can_feedback import CanFeedbackTracker",
+            "from std_msgs.msg import Bool, String",
+            "SafetyDriverStatus",
+            'CAN_FEEDBACK_TOPIC = "/vehicle/can/raw"',
+            'SAFETY_STATUS_TOPIC = "/vehicle/interface/actuation/from_actuation/safety_driver_status"',
+            "self.target_node.create_subscription(",
+            "String, self.can_feedback_topic, self.on_can_feedback, 500",
+            "self.source_node.create_publisher(",
+            "SafetyDriverStatus, SAFETY_STATUS_TOPIC, 10",
+            "vehicle_emergency_stop_released",
+            "vehicle_long_approved",
+            "vehicle_lat_approved",
+        ):
+            with self.subTest(token=token):
+                self.assertIn(token, text)
+
+    def test_bridge_declares_can_and_execution_parameters(self):
+        text = BRIDGE.read_text(encoding="utf-8")
+
+        for parameter in (
+            "can_feedback_topic",
+            "can_feedback_timeout_ms",
+            "execution_confirmation_timeout_ms",
+        ):
+            with self.subTest(parameter=parameter):
+                self.assertIn(f'declare_parameter("{parameter}"', text)
+
+    def test_bridge_diagnostics_expose_safety_and_execution_state(self):
+        text = BRIDGE.read_text(encoding="utf-8")
+
+        for key in (
+            "emergency_released",
+            "lateral_approved",
+            "longitudinal_approved",
+            "mcu_power_up",
+            "mcu_enabled",
+            "mcu_direction",
+            "mcu_gear",
+            "mcu_brake_locked",
+            "mcu_error_codes",
+            "mcu_stat1_age_ms",
+            "mcu_stat2_age_ms",
+            "mcu_error_age_ms",
+            "eps_mode",
+            "eps_init_status",
+            "eps_error_1",
+            "eps_error_2",
+            "eps_status1_age_ms",
+            "execution_expected",
+            "execution_remaining_ms",
+            "f710_override",
+        ):
+            with self.subTest(key=key):
+                self.assertIn(f'key="{key}"', text)
+
+    def test_fault_shutdown_is_latched_and_destroys_real_publishers(self):
+        text = BRIDGE.read_text(encoding="utf-8")
+
+        self.assertIn("self._fault_shutdown_pending = False", text)
+        self.assertIn("decision.state is State.FAULT", text)
+        self.assertIn("not self._fault_shutdown_pending", text)
+        self.assertIn("self._fault_shutdown_pending = True", text)
+        self.assertIn("self._start_deactivation()", text)
+        self.assertIn("self._request_manual_and_destroy()", text)
 
     def test_shared_parameters_default_actuation_to_disabled(self):
         params = yaml.safe_load(PARAMS.read_text(encoding="utf-8"))

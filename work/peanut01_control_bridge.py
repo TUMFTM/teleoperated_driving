@@ -16,6 +16,7 @@ from autoware_vehicle_msgs.msg import (
 )
 from autoware_vehicle_msgs.srv import ControlModeCommand
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
+from peanut01_can_feedback import CanFeedbackTracker
 from peanut01_control_mapping import ConvertedCommand, convert_command
 from peanut01_control_supervisor import InputSnapshot, Parameters, State, Supervisor
 from rcl_interfaces.msg import SetParametersResult
@@ -23,9 +24,13 @@ from rclpy.context import Context
 from rclpy.executors import SingleThreadedExecutor
 from rclpy.node import Node
 from rclpy.parameter import Parameter
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, String
 from tod_status_msgs.msg import Status
-from tod_vehicle_msgs.msg import PrimaryControlCmd, SecondaryControlCmd
+from tod_vehicle_msgs.msg import (
+    PrimaryControlCmd,
+    SafetyDriverStatus,
+    SecondaryControlCmd,
+)
 
 
 PRIMARY_TOPIC = "/vehicle/safety/output/primary_control_cmd"
@@ -37,6 +42,8 @@ STEERING_TOPIC = "/vehicle/status/steering_status"
 CONTROL_MODE_TOPIC = "/vehicle/status/control_mode"
 EMERGENCY_TOPIC = "/minguo/emergency_stop"
 OVERRIDE_TOPIC = "/minguo/teleop_override"
+CAN_FEEDBACK_TOPIC = "/vehicle/can/raw"
+SAFETY_STATUS_TOPIC = "/vehicle/interface/actuation/from_actuation/safety_driver_status"
 
 DEBUG_CONTROL_TOPIC = "/debug/tod_peanut01/autoware_control_cmd"
 DEBUG_GEAR_TOPIC = "/debug/tod_peanut01/autoware_gear_cmd"
@@ -88,11 +95,19 @@ class Peanut01ControlBridge:
         self.target_node = target_node
         self.shared = shared
         self.steering_ratio = config["steering_ratio"]
+        self.can_feedback_topic = config["can_feedback_topic"]
+        self.can_feedback = CanFeedbackTracker(
+            timeout_ns=config["can_feedback_timeout_ms"] * 1_000_000
+        )
         self.supervisor = Supervisor(
             Parameters(
                 command_timeout_ns=config["command_timeout_ms"] * 1_000_000,
                 feedback_timeout_ns=config["feedback_timeout_ms"] * 1_000_000,
                 arming_duration_ns=config["arming_duration_ms"] * 1_000_000,
+                execution_confirmation_timeout_ns=config[
+                    "execution_confirmation_timeout_ms"
+                ]
+                * 1_000_000,
                 stopped_velocity_mps=config["stopped_velocity_mps"],
             ),
             configured_enable=config["configured_enable"],
@@ -102,6 +117,7 @@ class Peanut01ControlBridge:
         self._mode_future = None
         self._deactivation_stop_cycles = 0
         self._hold_current_steering_once = False
+        self._fault_shutdown_pending = False
         self._last_reason = "actuation disabled"
 
         self.debug_publishers = {
@@ -116,6 +132,9 @@ class Peanut01ControlBridge:
         }
         self.diagnostics_publisher = target_node.create_publisher(
             DiagnosticArray, DIAGNOSTICS_TOPIC, 10
+        )
+        self.safety_status_publisher = self.source_node.create_publisher(
+            SafetyDriverStatus, SAFETY_STATUS_TOPIC, 10
         )
         self.control_mode_client = target_node.create_client(
             ControlModeCommand, CONTROL_MODE_SERVICE
@@ -155,6 +174,9 @@ class Peanut01ControlBridge:
                 ),
                 self.target_node.create_subscription(
                     Bool, OVERRIDE_TOPIC, self.on_override, 10
+                ),
+                self.target_node.create_subscription(
+                    String, self.can_feedback_topic, self.on_can_feedback, 500
                 ),
             )
         )
@@ -199,6 +221,10 @@ class Peanut01ControlBridge:
             self.shared.local_override = message.data
             self.shared.feedback_stamps["override"] = receipt_time_ns()
 
+    def on_can_feedback(self, message):
+        with self.shared.lock:
+            self.can_feedback.update_json(message.data, receipt_time_ns())
+
     def create_real_publishers(self):
         if self._real_publishers is not None:
             return
@@ -228,6 +254,17 @@ class Peanut01ControlBridge:
             secondary = self.shared.secondary
             status = self.shared.status
             steering = self.shared.steering_tire_angle_rad
+            emergency_age_ns = now_ns - self.shared.feedback_stamps["emergency"]
+            emergency_fresh = (
+                self.shared.feedback_stamps["emergency"] > 0
+                and 0 <= emergency_age_ns <= self.supervisor.params.feedback_timeout_ns
+            )
+            feedback = self.can_feedback.snapshot(
+                now_ns,
+                emergency_fresh=emergency_fresh,
+                emergency=self.shared.emergency,
+            )
+            feedback_ages = self.can_feedback.ages_ns(now_ns)
             snapshot_values = {
                 "now_ns": now_ns,
                 "primary_stamp_ns": self.shared.primary_stamp_ns,
@@ -249,7 +286,15 @@ class Peanut01ControlBridge:
                     self.shared.control_mode == ControlModeReport.AUTONOMOUS
                 ),
                 "emergency": self.shared.emergency,
+                "emergency_released": feedback.emergency_released,
                 "local_override": self.shared.local_override,
+                "lateral_approved": feedback.lateral_approved,
+                "longitudinal_approved": feedback.longitudinal_approved,
+                "mcu_power_up": feedback.mcu.power_up,
+                "mcu_enabled": feedback.mcu.enabled,
+                "mcu_direction": feedback.mcu.direction,
+                "mcu_gear": feedback.mcu.gear,
+                "mcu_brake_locked": feedback.mcu.brake_locked,
             }
             requested_enable = self.shared.requested_enable
             unsupported = (
@@ -275,12 +320,16 @@ class Peanut01ControlBridge:
         except (TypeError, ValueError):
             converted = None
         snapshot_values["values_valid"] = converted is not None
+        if converted is not None:
+            snapshot_values["requested_velocity_mps"] = converted.velocity_mps
         return (
             InputSnapshot(**snapshot_values),
             converted,
             steering,
             requested_enable,
             unsupported,
+            feedback,
+            feedback_ages,
         )
 
     def _control_message(self, velocity, steering_tire_angle):
@@ -381,7 +430,26 @@ class Peanut01ControlBridge:
     def _start_deactivation(self):
         self._deactivation_stop_cycles = 3
 
-    def _publish_diagnostics(self, reason, unsupported):
+    def _run_deactivation(self, steering):
+        self._publish_real_stop(steering)
+        self._deactivation_stop_cycles -= 1
+        if self._deactivation_stop_cycles == 0:
+            self._request_manual_and_destroy()
+
+    @staticmethod
+    def _age_ms(value):
+        return "unknown" if value is None else f"{value / 1_000_000:.1f}"
+
+    def _publish_safety_status(self, feedback):
+        message = SafetyDriverStatus()
+        message.vehicle_emergency_stop_released = feedback.emergency_released
+        message.vehicle_long_approved = feedback.longitudinal_approved
+        message.vehicle_lat_approved = feedback.lateral_approved
+        self.safety_status_publisher.publish(message)
+
+    def _publish_diagnostics(
+        self, reason, unsupported, feedback, feedback_ages, snapshot, now_ns
+    ):
         message = DiagnosticArray()
         message.header.stamp = self.target_node.get_clock().now().to_msg()
         status = DiagnosticStatus()
@@ -398,41 +466,124 @@ class Peanut01ControlBridge:
             KeyValue(key="state", value=self.supervisor.state.value),
             KeyValue(key="enable_actuation", value=str(self._applied_enable)),
             KeyValue(key="unsupported_secondary", value=",".join(unsupported)),
+            KeyValue(
+                key="emergency_released", value=str(feedback.emergency_released)
+            ),
+            KeyValue(key="lateral_approved", value=str(feedback.lateral_approved)),
+            KeyValue(
+                key="longitudinal_approved",
+                value=str(feedback.longitudinal_approved),
+            ),
+            KeyValue(key="mcu_power_up", value=str(feedback.mcu.power_up)),
+            KeyValue(key="mcu_enabled", value=str(feedback.mcu.enabled)),
+            KeyValue(key="mcu_direction", value=str(feedback.mcu.direction)),
+            KeyValue(key="mcu_gear", value=str(feedback.mcu.gear)),
+            KeyValue(
+                key="mcu_brake_locked", value=str(feedback.mcu.brake_locked)
+            ),
+            KeyValue(
+                key="mcu_error_codes",
+                value=",".join(str(code) for code in feedback.mcu.error_codes),
+            ),
+            KeyValue(
+                key="mcu_stat1_age_ms",
+                value=self._age_ms(feedback_ages["mcu_stat1"]),
+            ),
+            KeyValue(
+                key="mcu_stat2_age_ms",
+                value=self._age_ms(feedback_ages["mcu_stat2"]),
+            ),
+            KeyValue(
+                key="mcu_error_age_ms",
+                value=self._age_ms(feedback_ages["mcu_error"]),
+            ),
+            KeyValue(key="eps_mode", value=str(feedback.eps.mode)),
+            KeyValue(key="eps_init_status", value=str(feedback.eps.init_status)),
+            KeyValue(key="eps_error_1", value=str(feedback.eps.error_1)),
+            KeyValue(key="eps_error_2", value=str(feedback.eps.error_2)),
+            KeyValue(
+                key="eps_status1_age_ms",
+                value=self._age_ms(feedback_ages["eps_status1"]),
+            ),
+            KeyValue(
+                key="execution_expected", value=self.supervisor.execution_expected
+            ),
+            KeyValue(
+                key="execution_remaining_ms",
+                value=self._age_ms(self.supervisor.execution_remaining_ns(now_ns)),
+            ),
+            KeyValue(key="f710_override", value=str(snapshot.local_override)),
+            KeyValue(key="can_reject_reason", value=feedback.last_reject_reason),
         ]
         message.status = [status]
         self.diagnostics_publisher.publish(message)
 
     def on_timer(self):
         now_ns = receipt_time_ns()
-        snapshot, converted, steering, requested_enable, unsupported = (
+        (
+            snapshot,
+            converted,
+            steering,
+            requested_enable,
+            unsupported,
+            feedback,
+            feedback_ages,
+        ) = (
             self._copy_inputs(now_ns)
         )
         self._publish_debug(converted)
+        self._publish_safety_status(feedback)
 
         if requested_enable != self._applied_enable:
             decision = self.supervisor.request_enable(requested_enable)
             self._applied_enable = requested_enable
             self._last_reason = decision.reason
+            if not requested_enable:
+                self._fault_shutdown_pending = False
             if decision.request_manual:
                 self._start_deactivation()
 
         if self._deactivation_stop_cycles > 0:
-            self._publish_real_stop(steering)
-            self._deactivation_stop_cycles -= 1
-            if self._deactivation_stop_cycles == 0:
-                self._request_manual_and_destroy()
-            self._publish_diagnostics(self._last_reason, unsupported)
+            self._run_deactivation(steering)
+            self._publish_diagnostics(
+                self._last_reason,
+                unsupported,
+                feedback,
+                feedback_ages,
+                snapshot,
+                now_ns,
+            )
             return
 
         decision = self.supervisor.step(snapshot)
         self._last_reason = decision.reason
         if decision.request_autonomous:
             self._request_autonomous()
+        if decision.state is State.FAULT and not self._fault_shutdown_pending:
+            self._fault_shutdown_pending = True
+            self._start_deactivation()
+            self._run_deactivation(steering)
+            self._publish_diagnostics(
+                self._last_reason,
+                unsupported,
+                feedback,
+                feedback_ages,
+                snapshot,
+                now_ns,
+            )
+            return
         if decision.publish_commands and converted is not None:
             self._publish_real(converted, steering)
         if decision.publish_stop:
             self._publish_real_stop(steering)
-        self._publish_diagnostics(self._last_reason, unsupported)
+        self._publish_diagnostics(
+            self._last_reason,
+            unsupported,
+            feedback,
+            feedback_ages,
+            snapshot,
+            now_ns,
+        )
 
 
 def declare_config(source_node):
@@ -452,6 +603,15 @@ def declare_config(source_node):
         ),
         "feedback_timeout_ms": int(
             source_node.declare_parameter("feedback_timeout_ms", 300).value
+        ),
+        "can_feedback_topic": str(
+            source_node.declare_parameter("can_feedback_topic", CAN_FEEDBACK_TOPIC).value
+        ),
+        "can_feedback_timeout_ms": int(
+            source_node.declare_parameter("can_feedback_timeout_ms", 300).value
+        ),
+        "execution_confirmation_timeout_ms": int(
+            source_node.declare_parameter("execution_confirmation_timeout_ms", 500).value
         ),
         "arming_duration_ms": int(
             source_node.declare_parameter("arming_duration_ms", 1000).value
