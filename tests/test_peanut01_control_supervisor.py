@@ -274,6 +274,40 @@ def fresh_late_snapshot(snapshot, elapsed_ns=500_000_001, **changes):
     )
 
 
+@pytest.mark.parametrize(
+    ("velocity_mps", "gear"),
+    ((0.01, 3), (0.02, 3), (-0.01, 1), (-0.02, 1)),
+)
+def test_execution_treats_velocity_at_or_below_stopped_threshold_as_stopped(
+    velocity_mps, gear
+):
+    supervisor = make_active_supervisor()
+    requested = active_snapshot(requested_velocity_mps=velocity_mps, tod_gear=gear)
+
+    assert supervisor.step(requested).state is State.ACTIVE
+    decision = supervisor.step(fresh_late_snapshot(requested))
+
+    assert decision.state is State.ACTIVE
+    assert decision.publish_commands
+
+
+@pytest.mark.parametrize(
+    ("velocity_mps", "gear"),
+    ((0.020001, 3), (-0.020001, 1)),
+)
+def test_execution_requires_drive_feedback_outside_stopped_threshold(
+    velocity_mps, gear
+):
+    supervisor = make_active_supervisor()
+    requested = active_snapshot(requested_velocity_mps=velocity_mps, tod_gear=gear)
+    supervisor.step(requested)
+
+    decision = supervisor.step(fresh_late_snapshot(requested))
+
+    assert decision.state is State.FAULT
+    assert decision.publish_stop
+
+
 def test_drive_execution_mismatches_fault_after_500_ms():
     mismatches = {
         "enable": {},

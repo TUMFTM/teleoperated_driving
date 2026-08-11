@@ -197,7 +197,9 @@ class Supervisor:
         return self._decision(publish_commands=True, reason="actuation active")
 
     def _expected_execution(self, snapshot):
-        moving = abs(snapshot.requested_velocity_mps) > 1e-9
+        moving = (
+            abs(snapshot.requested_velocity_mps) > self.params.stopped_velocity_mps
+        )
         if moving and snapshot.tod_gear == 3:
             return "drive"
         if moving and snapshot.tod_gear == 1:
