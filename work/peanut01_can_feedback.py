@@ -74,6 +74,22 @@ class CanFeedbackTracker:
         self._eps = EpsStatus()
         self._last_reject_reason = ""
 
+    def _fresh(self, now_ns, stamp_ns):
+        age_ns = now_ns - stamp_ns
+        return stamp_ns > 0 and 0 <= age_ns <= self.timeout_ns
+
+    def ages_ns(self, now_ns):
+        stamps = {
+            "mcu_stat1": self._mcu.stat1_stamp_ns,
+            "mcu_stat2": self._mcu.stat2_stamp_ns,
+            "mcu_error": self._mcu.error_stamp_ns,
+            "eps_status1": self._eps.status_stamp_ns,
+        }
+        return {
+            name: (now_ns - stamp if stamp > 0 and now_ns >= stamp else None)
+            for name, stamp in stamps.items()
+        }
+
     def _reject(self, reason):
         self._last_reject_reason = reason
         return False
@@ -172,9 +188,31 @@ class CanFeedbackTracker:
         return True
 
     def snapshot(self, now_ns, emergency_fresh=False, emergency=True):
-        del now_ns, emergency_fresh, emergency
+        mcu_stat1_fresh = self._fresh(now_ns, self._mcu.stat1_stamp_ns)
+        mcu_stat2_fresh = self._fresh(now_ns, self._mcu.stat2_stamp_ns)
+        mcu_error_fresh = self._fresh(now_ns, self._mcu.error_stamp_ns)
+        eps_fresh = self._fresh(now_ns, self._eps.status_stamp_ns)
+        emergency_released = emergency_fresh and not emergency
+        lateral_approved = (
+            eps_fresh
+            and self._eps.mode in (0x20, 0x23)
+            and self._eps.init_status in (0x55, 0xEE)
+            and self._eps.error_1 == 0
+            and self._eps.error_2 == 0
+        )
+        longitudinal_approved = (
+            mcu_stat1_fresh
+            and mcu_stat2_fresh
+            and mcu_error_fresh
+            and self._mcu.power_up
+            and not any(self._mcu.error_codes)
+            and not self._mcu.manual_override
+        )
         return FeedbackSnapshot(
             mcu=self._mcu,
             eps=self._eps,
+            emergency_released=emergency_released,
+            lateral_approved=lateral_approved,
+            longitudinal_approved=longitudinal_approved,
             last_reject_reason=self._last_reject_reason,
         )
