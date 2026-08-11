@@ -2,7 +2,7 @@ import dataclasses
 import json
 
 
-RECOGNIZED_CAN_IDS = (0x1A2, 0x1A3, 0x1A4, 0x401)
+RECOGNIZED_CAN_IDS = (0x1A1, 0x1A2, 0x1A3, 0x1A4, 0x401)
 ENVELOPE_FIELDS = {
     "stamp_ns",
     "interface",
@@ -14,6 +14,16 @@ ENVELOPE_FIELDS = {
     "dlc",
     "data_hex",
 }
+
+
+@dataclasses.dataclass(frozen=True)
+class McuCommand:
+    enabled: bool = False
+    mode: int = 0
+    gear: int = 0
+    brake_mode: int = 0
+    motor_rpm: int = 0
+    stamp_ns: int = 0
 
 
 @dataclasses.dataclass(frozen=True)
@@ -50,6 +60,8 @@ class EpsStatus:
 class FeedbackSnapshot:
     mcu: McuStatus
     eps: EpsStatus
+    command: McuCommand
+    software_neutral: bool = False
     emergency_released: bool = False
     lateral_approved: bool = False
     longitudinal_approved: bool = False
@@ -70,6 +82,7 @@ def eps_xor(data):
 class CanFeedbackTracker:
     def __init__(self, timeout_ns):
         self.timeout_ns = timeout_ns
+        self._command = McuCommand()
         self._mcu = McuStatus()
         self._eps = EpsStatus()
         self._last_reject_reason = ""
@@ -80,6 +93,7 @@ class CanFeedbackTracker:
 
     def ages_ns(self, now_ns):
         stamps = {
+            "mcu_command": self._command.stamp_ns,
             "mcu_stat1": self._mcu.stat1_stamp_ns,
             "mcu_stat2": self._mcu.stat2_stamp_ns,
             "mcu_error": self._mcu.error_stamp_ns,
@@ -139,12 +153,21 @@ class CanFeedbackTracker:
         if parsed is None:
             return self._reject(reason)
         can_id, data = parsed
-        if can_id in (0x1A2, 0x1A3, 0x1A4) and mcu_checksum(data) != data[7]:
+        if can_id in (0x1A1, 0x1A2, 0x1A3, 0x1A4) and mcu_checksum(data) != data[7]:
             return self._reject("MCU checksum mismatch")
         if can_id == 0x401 and eps_xor(data) != data[7]:
             return self._reject("EPS XOR mismatch")
 
-        if can_id == 0x1A2:
+        if can_id == 0x1A1:
+            self._command = McuCommand(
+                enabled=bool(data[0] & 0x80),
+                mode=(data[0] >> 5) & 0x03,
+                gear=(data[0] >> 2) & 0x03,
+                brake_mode=data[0] & 0x03,
+                motor_rpm=int.from_bytes(data[3:5], "big"),
+                stamp_ns=receipt_ns,
+            )
+        elif can_id == 0x1A2:
             self._mcu = dataclasses.replace(
                 self._mcu,
                 power_up=bool(data[0] & 0x80),
@@ -188,6 +211,7 @@ class CanFeedbackTracker:
         return True
 
     def snapshot(self, now_ns, emergency_fresh=False, emergency=True):
+        command_fresh = self._fresh(now_ns, self._command.stamp_ns)
         mcu_stat1_fresh = self._fresh(now_ns, self._mcu.stat1_stamp_ns)
         mcu_stat2_fresh = self._fresh(now_ns, self._mcu.stat2_stamp_ns)
         mcu_error_fresh = self._fresh(now_ns, self._mcu.error_stamp_ns)
@@ -208,9 +232,18 @@ class CanFeedbackTracker:
             and not any(self._mcu.error_codes)
             and not self._mcu.manual_override
         )
+        software_neutral = command_fresh and (
+            not self._command.enabled
+            and self._command.mode == 1
+            and self._command.gear == 2
+            and self._command.brake_mode == 1
+            and self._command.motor_rpm == 0
+        )
         return FeedbackSnapshot(
             mcu=self._mcu,
             eps=self._eps,
+            command=self._command,
+            software_neutral=software_neutral,
             emergency_released=emergency_released,
             lateral_approved=lateral_approved,
             longitudinal_approved=longitudinal_approved,

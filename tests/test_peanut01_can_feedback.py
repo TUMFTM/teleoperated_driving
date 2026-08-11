@@ -14,6 +14,7 @@ mcu_checksum = MODULE["mcu_checksum"]
 eps_xor = MODULE["eps_xor"]
 
 NOW_NS = 1_000_000_000
+VALID_NEUTRAL_COMMAND = "29000000000000D6"
 VALID_FRAMES = {
     0x1A2: "891040050005011B",
     0x1A3: "01F4000A0064009C",
@@ -79,6 +80,68 @@ def test_decodes_captured_mcu_and_eps_frames():
     assert (status.eps.mode, status.eps.init_status) == (0x20, 0x55)
     assert (status.eps.error_1, status.eps.error_2) == (0, 0)
     assert status.eps.angle_deg == pytest.approx(-921.6)
+
+
+def test_decodes_captured_neutral_stop_command():
+    tracker = CanFeedbackTracker(timeout_ns=300_000_000)
+
+    assert tracker.update_json(
+        raw_frame(0x1A1, VALID_NEUTRAL_COMMAND), NOW_NS
+    )
+
+    status = tracker.snapshot(NOW_NS)
+    assert not status.command.enabled
+    assert status.command.mode == 1
+    assert status.command.gear == 2
+    assert status.command.brake_mode == 1
+    assert status.command.motor_rpm == 0
+    assert status.command.stamp_ns == NOW_NS
+    assert status.software_neutral
+    assert tracker.ages_ns(NOW_NS + 5)["mcu_command"] == 5
+
+
+@pytest.mark.parametrize(
+    "first_seven",
+    (
+        bytes.fromhex("A9000000000000"),
+        bytes.fromhex("09000000000000"),
+        bytes.fromhex("25000000000000"),
+        bytes.fromhex("28000000000000"),
+        bytes.fromhex("29000001000000"),
+    ),
+)
+def test_software_neutral_rejects_non_neutral_command_semantics(first_seven):
+    tracker = CanFeedbackTracker(timeout_ns=300_000_000)
+    payload = valid_payload(0x1A1, first_seven)
+
+    assert tracker.update_json(raw_frame(0x1A1, payload), NOW_NS)
+
+    assert not tracker.snapshot(NOW_NS).software_neutral
+
+
+def test_software_neutral_requires_fresh_command():
+    tracker = CanFeedbackTracker(timeout_ns=300_000_000)
+    assert tracker.update_json(
+        raw_frame(0x1A1, VALID_NEUTRAL_COMMAND), NOW_NS
+    )
+
+    assert tracker.snapshot(NOW_NS + 300_000_000).software_neutral
+    assert not tracker.snapshot(NOW_NS + 300_000_001).software_neutral
+
+
+def test_rejected_command_checksum_does_not_refresh_timestamp():
+    tracker = CanFeedbackTracker(timeout_ns=300_000_000)
+    assert tracker.update_json(
+        raw_frame(0x1A1, VALID_NEUTRAL_COMMAND), NOW_NS
+    )
+
+    assert not tracker.update_json(
+        raw_frame(0x1A1, "29000000000000D7"), NOW_NS + 1
+    )
+
+    status = tracker.snapshot(NOW_NS + 1)
+    assert status.command.stamp_ns == NOW_NS
+    assert status.software_neutral
 
 
 @pytest.mark.parametrize(
@@ -249,6 +312,7 @@ def test_reports_independent_feedback_ages():
     tracker = populated_tracker()
 
     assert tracker.ages_ns(NOW_NS + 5) == {
+        "mcu_command": None,
         "mcu_stat1": 5,
         "mcu_stat2": 5,
         "mcu_error": 5,
@@ -257,6 +321,7 @@ def test_reports_independent_feedback_ages():
 
     empty = CanFeedbackTracker(timeout_ns=300_000_000)
     assert empty.ages_ns(NOW_NS) == {
+        "mcu_command": None,
         "mcu_stat1": None,
         "mcu_stat2": None,
         "mcu_error": None,
