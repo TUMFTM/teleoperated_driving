@@ -15,6 +15,7 @@ class Parameters:
     command_timeout_ns: int = 300_000_000
     feedback_timeout_ns: int = 300_000_000
     arming_duration_ns: int = 1_000_000_000
+    execution_confirmation_timeout_ns: int = 500_000_000
     stopped_velocity_mps: float = 0.02
 
 
@@ -31,8 +32,16 @@ class InputSnapshot:
     vehicle_velocity_mps: float
     vehicle_autonomous: bool
     emergency: bool
+    emergency_released: bool
     local_override: bool
     values_valid: bool
+    lateral_approved: bool
+    longitudinal_approved: bool
+    mcu_power_up: bool
+    mcu_enabled: bool
+    mcu_direction: int
+    mcu_gear: int
+    mcu_brake_locked: bool
 
 
 @dataclasses.dataclass(frozen=True)
@@ -77,8 +86,14 @@ def _common_fault(snapshot, params, require_autonomous):
         return "invalid command or feedback value"
     if snapshot.emergency:
         return "vehicle emergency stop is active"
+    if not snapshot.emergency_released:
+        return "vehicle emergency stop release is unavailable"
     if snapshot.local_override:
         return "vehicle-local F710 override is active"
+    if not snapshot.lateral_approved:
+        return "lateral actuation is not approved"
+    if not snapshot.longitudinal_approved:
+        return "longitudinal actuation is not approved"
     if require_autonomous and not snapshot.vehicle_autonomous:
         return "vehicle left autonomous control mode"
     return ""
@@ -89,8 +104,12 @@ def input_ready(snapshot, params):
         return False
     return (
         abs(snapshot.vehicle_velocity_mps) <= params.stopped_velocity_mps
-        and snapshot.tod_gear in (0, 2)
+        and snapshot.tod_gear == 2
         and abs(snapshot.requested_velocity_mps) <= params.stopped_velocity_mps
+        and snapshot.mcu_power_up
+        and not snapshot.mcu_enabled
+        and snapshot.mcu_brake_locked
+        and snapshot.mcu_gear == 0
     )
 
 
@@ -101,6 +120,8 @@ class Supervisor:
         self.state = State.DISABLED
         self._arming_started_ns = None
         self._mode_request_pending = False
+        self._execution_expected = None
+        self._execution_started_ns = None
 
     def _decision(self, **changes):
         return Decision(state=self.state, **changes)
@@ -111,6 +132,8 @@ class Supervisor:
                 self.state = State.ARMING
                 self._arming_started_ns = None
                 self._mode_request_pending = False
+                self._execution_expected = None
+                self._execution_started_ns = None
                 return self._decision(reason="waiting for arming conditions")
             return self._decision(reason="enable request does not change state")
 
@@ -118,6 +141,8 @@ class Supervisor:
         self.state = State.DISABLED
         self._arming_started_ns = None
         self._mode_request_pending = False
+        self._execution_expected = None
+        self._execution_started_ns = None
         needs_shutdown = previous in (State.ACTIVE, State.FAULT)
         return self._decision(
             publish_stop=needs_shutdown,
@@ -156,7 +181,60 @@ class Supervisor:
         if fault:
             self.state = State.FAULT
             return self._decision(publish_stop=True, reason=fault)
+        expected = self._expected_execution(snapshot)
+        if expected != self._execution_expected:
+            self._execution_expected = expected
+            self._execution_started_ns = snapshot.now_ns
+        if not self._execution_matches(snapshot):
+            elapsed_ns = snapshot.now_ns - self._execution_started_ns
+            if elapsed_ns > self.params.execution_confirmation_timeout_ns:
+                self.state = State.FAULT
+                return self._decision(
+                    publish_stop=True,
+                    reason=f"execution feedback mismatch: {expected}",
+                )
         return self._decision(publish_commands=True, reason="actuation active")
+
+    def _expected_execution(self, snapshot):
+        moving = abs(snapshot.requested_velocity_mps) > 1e-9
+        if moving and snapshot.tod_gear == 3:
+            return "drive"
+        if moving and snapshot.tod_gear == 1:
+            return "reverse"
+        return "stopped_neutral" if snapshot.tod_gear == 2 else "stopped"
+
+    def _execution_matches(self, snapshot):
+        if self._execution_expected == "drive":
+            return (
+                snapshot.mcu_enabled
+                and not snapshot.mcu_brake_locked
+                and snapshot.mcu_direction == 1
+                and snapshot.mcu_gear == 1
+            )
+        if self._execution_expected == "reverse":
+            return (
+                snapshot.mcu_enabled
+                and not snapshot.mcu_brake_locked
+                and snapshot.mcu_direction == 2
+                and snapshot.mcu_gear == 2
+            )
+        matches = not snapshot.mcu_enabled and snapshot.mcu_brake_locked
+        if self._execution_expected == "stopped_neutral":
+            matches = matches and snapshot.mcu_gear == 0
+        return matches
+
+    @property
+    def execution_expected(self):
+        return self._execution_expected or "none"
+
+    def execution_remaining_ns(self, now_ns):
+        if self._execution_started_ns is None:
+            return None
+        return max(
+            0,
+            self.params.execution_confirmation_timeout_ns
+            - (now_ns - self._execution_started_ns),
+        )
 
     def on_mode_response(self, success):
         if self.state is not State.ARMING or not self._mode_request_pending:
@@ -164,6 +242,8 @@ class Supervisor:
         self._mode_request_pending = False
         if success:
             self.state = State.ACTIVE
+            self._execution_expected = None
+            self._execution_started_ns = None
             return self._decision(reason="autonomous mode accepted")
         self.state = State.FAULT
         return self._decision(
