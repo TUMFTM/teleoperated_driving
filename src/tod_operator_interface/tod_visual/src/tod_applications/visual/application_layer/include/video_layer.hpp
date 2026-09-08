@@ -58,8 +58,10 @@ class VideoLayer : public tod_gl::DockingSceneLayer {
     tod_gl::Buffer back_buffer_;
     bool using_front_buffer_{false};
 
-    float width_ = 960;
-    float height_ = 600;
+    unsigned int width_ = 960;
+    unsigned int height_ = 600;
+    float display_width_ = 960.0f;
+    float display_height_ = 600.0f;
     float offset_y_ = 0.0f;
     float custom_scaling_ = 1.0f;
     const float offset_increment_ = 10.0f;

@@ -1,0 +1,16 @@
+services:
+  tod_vehicle:
+    command:
+      - ros2
+      - launch
+      - tod_launch
+      - tod_vehicle_control_only.launch.py
+      - vehicleNetworkInterface:=${VEHICLE_NETWORK_INTERFACE:-eth1}
+
+  tod_operator:
+    command:
+      - ros2
+      - launch
+      - tod_launch
+      - tod_operator_control_only.launch.py
+      - operatorNetworkInterface:=${OPERATOR_NETWORK_INTERFACE:-eno1}

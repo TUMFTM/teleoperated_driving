@@ -1,0 +1,24 @@
+launch_parameters:
+  vehicleID: 'peanut01'
+  mode: 'vehicle'
+
+packages_to_launch:
+  operator:
+    tod_projection: False
+    tod_input_devices: True
+    tod_command_creation: True
+    tod_visual: True
+  vehicle:
+    tod_command_forwarder: True
+    tod_pure_pursuit: False
+    tod_safety_gate: True
+    tod_topic_monitoring: True
+  both:
+    tod_trajectory_guidance: False
+    tod_communication_interface: True
+    tod_state_machine: True
+    tod_logger: False
+    tod_rtsp: True
+    tod_data_interface: True
+    tod_network_monitoring: True
+    tod_transform: False

@@ -1,0 +1,32 @@
+services:
+  tod_vehicle:
+    environment:
+      TOD_RTSP_SENSOR_DOMAIN_ID: ${TOD_RTSP_SENSOR_DOMAIN_ID:-0}
+      TOD_LIDAR_SENSOR_DOMAIN_ID: ${TOD_LIDAR_SENSOR_DOMAIN_ID:-0}
+      TOD_VEHICLE_STATE_SENSOR_DOMAIN_ID: ${TOD_VEHICLE_STATE_SENSOR_DOMAIN_ID:-0}
+      TOD_RTSP_CONFIG_PATH: /home/tum/wsp/install/tod_launch/share/tod_launch/config/vehicle_config/peanut01
+    command:
+      - ros2
+      - launch
+      - tod_launch
+      - tod_vehicle_peanut01_video.launch.py
+      - vehicleNetworkInterface:=${VEHICLE_NETWORK_INTERFACE:-eth1}
+
+  tod_operator:
+    environment:
+      TOD_RTSP_CONFIG_PATH: /home/tum/wsp/install/tod_launch/share/tod_launch/config/vehicle_config/peanut01
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    command:
+      - ros2
+      - launch
+      - tod_launch
+      - tod_operator_peanut01_video.launch.py
+      - operatorNetworkInterface:=${OPERATOR_NETWORK_INTERFACE:-eno1}

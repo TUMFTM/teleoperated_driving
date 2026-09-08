@@ -24,7 +24,7 @@ void StateLayer::on_attach() {
     stateManager.register_entity("ValidationPathRenderer", {tod_status_msgs::msg::Status::CONTROL_MODE_NONE,tod_status_msgs::msg::Status::CONTROL_MODE_PATH_GUIDANCE});
 
     stateManager.register_entity("PathControlPointsRenderer", {tod_status_msgs::msg::Status::CONTROL_MODE_NONE,tod_status_msgs::msg::Status::CONTROL_MODE_PATH_GUIDANCE});
-    stateManager.register_entity("PointCloudRenderer", {tod_status_msgs::msg::Status::CONTROL_MODE_NONE,tod_status_msgs::msg::Status::CONTROL_MODE_PATH_GUIDANCE});
+    stateManager.register_entity("PointCloudRenderer", {tod_status_msgs::msg::Status::CONTROL_MODE_NONE,tod_status_msgs::msg::Status::CONTROL_MODE_DIRECT,tod_status_msgs::msg::Status::CONTROL_MODE_PATH_GUIDANCE});
     stateManager.register_entity("ObjectRenderer", {tod_status_msgs::msg::Status::CONTROL_MODE_NONE,tod_status_msgs::msg::Status::CONTROL_MODE_PATH_GUIDANCE});
     stateManager.register_entity("Lanelet", {tod_status_msgs::msg::Status::CONTROL_MODE_NONE,tod_status_msgs::msg::Status::CONTROL_MODE_PATH_GUIDANCE});
 
@@ -35,9 +35,9 @@ void StateLayer::on_attach() {
         stateManager.register_entity(videoName, {tod_status_msgs::msg::Status::CONTROL_MODE_NONE,tod_status_msgs::msg::Status::CONTROL_MODE_DIRECT});
     }
 
-    stateManager.register_layer("Left", {tod_status_msgs::msg::Status::CONTROL_MODE_NONE,tod_status_msgs::msg::Status::CONTROL_MODE_PATH_GUIDANCE});
-    stateManager.register_layer("Center", {tod_status_msgs::msg::Status::CONTROL_MODE_NONE,tod_status_msgs::msg::Status::CONTROL_MODE_PATH_GUIDANCE});
-    stateManager.register_layer("Right", {tod_status_msgs::msg::Status::CONTROL_MODE_NONE,tod_status_msgs::msg::Status::CONTROL_MODE_PATH_GUIDANCE});
+    stateManager.register_layer("Left", {tod_status_msgs::msg::Status::CONTROL_MODE_NONE,tod_status_msgs::msg::Status::CONTROL_MODE_DIRECT,tod_status_msgs::msg::Status::CONTROL_MODE_SHARED,tod_status_msgs::msg::Status::CONTROL_MODE_PATH_GUIDANCE});
+    stateManager.register_layer("Center", {tod_status_msgs::msg::Status::CONTROL_MODE_NONE,tod_status_msgs::msg::Status::CONTROL_MODE_DIRECT,tod_status_msgs::msg::Status::CONTROL_MODE_SHARED,tod_status_msgs::msg::Status::CONTROL_MODE_PATH_GUIDANCE});
+    stateManager.register_layer("Right", {tod_status_msgs::msg::Status::CONTROL_MODE_NONE,tod_status_msgs::msg::Status::CONTROL_MODE_DIRECT,tod_status_msgs::msg::Status::CONTROL_MODE_SHARED,tod_status_msgs::msg::Status::CONTROL_MODE_PATH_GUIDANCE});
     stateManager.register_layer("TrajectoryGuidanceStateLayer", {tod_status_msgs::msg::Status::CONTROL_MODE_NONE,tod_status_msgs::msg::Status::CONTROL_MODE_PATH_GUIDANCE});
 
     // Load toggle settings (can be set in the params and be adjusted during runtime by using the settings layer)

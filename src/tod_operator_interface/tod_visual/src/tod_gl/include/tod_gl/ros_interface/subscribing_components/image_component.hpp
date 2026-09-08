@@ -7,6 +7,8 @@
 
  #pragma once
 
+ #include <mutex>
+
  #include "tod_gl/utils/utils.hpp"
  #include <cv_bridge/cv_bridge.h>
  #include <glm/glm.hpp>
@@ -54,9 +56,10 @@
       * @return A CameraIntrinsics structure with the current intrinsic parameters.
       */
      CameraIntrinsics getCameraIntrinsics();
+
+     sensor_msgs::msg::Image::SharedPtr get_image() const;
  
      // Public members (for simplicity – in a real design können diese encapsuliert werden)
-     sensor_msgs::msg::Image image;
      sensor_msgs::msg::CameraInfo camInfo;
      sensor_msgs::msg::Image undistortedRosImage;
      bool isCamInfoSet;
@@ -79,10 +82,14 @@
       * @param subNode Shared pointer to the ROS node.
       */
      void initialize_subscriptions(std::shared_ptr<rclcpp::Node> subNode);
+
+     bool rotate_clockwise_{false};
  
    private:
      rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subscription_;
      rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr _subscription_cam_info;
+     std::shared_ptr<std::mutex> image_mutex_{std::make_shared<std::mutex>()};
+     sensor_msgs::msg::Image::SharedPtr latest_image_;
  
      /**
       * @brief Callback for receiving image messages.
@@ -93,7 +100,9 @@
      /**
       * @brief Converts the image encoding from YUV422 to RGB8.
       */
-     void convert_encoding_to_rgb8();
+     void convert_encoding_to_rgb8(sensor_msgs::msg::Image& image);
+
+     void rotate_image_clockwise(sensor_msgs::msg::Image& image);
  
      /**
       * @brief Callback for receiving camera info messages.
@@ -187,4 +196,3 @@
  };
  
  }  // namespace tod_gl
- 

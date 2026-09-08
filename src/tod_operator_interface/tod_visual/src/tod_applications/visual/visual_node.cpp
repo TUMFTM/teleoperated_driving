@@ -52,6 +52,7 @@ class VisualApplicationNode : public tod_gl::SceneApplication {
                                        tod_gl::AutomationStatusComponent,
                                        tod_gl::NetworkMetricsComponent, 
                                        tod_gl::JoyStickComponent, 
+                                       tod_gl::PrimaryControlCommandComponent,
                                        tod_gl::SecondaryControlCommandComponent>(_ros, _active_scene, view_port_layer));
 
         push_overlay(new VideoLayer<tod_gl::ImageComponentFrontLeft>(_ros, _active_scene, ImGuiDir_Up, "Left"));

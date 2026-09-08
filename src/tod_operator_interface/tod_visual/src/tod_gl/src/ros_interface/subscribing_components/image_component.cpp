@@ -32,6 +32,11 @@
  
      return intrinsics;
  }
+
+ sensor_msgs::msg::Image::SharedPtr ImageComponent::get_image() const {
+     std::lock_guard<std::mutex> lock(*image_mutex_);
+     return latest_image_;
+ }
  
  void ImageComponent::initialize_subscriptions(std::shared_ptr<rclcpp::Node> subNode) {
      rclcpp::QoS qs = rclcpp::SensorDataQoS();
@@ -56,21 +61,36 @@
  }
  
  void ImageComponent::cb_message_received(const std::shared_ptr<const sensor_msgs::msg::Image> msg) {
-     image = *msg;
+     auto processed_image = std::make_shared<sensor_msgs::msg::Image>(*msg);
      // If image encoding is YUV422, convert it to RGB8.
-     if (image.encoding == sensor_msgs::image_encodings::YUV422) {
-         convert_encoding_to_rgb8();
+     if (processed_image->encoding == sensor_msgs::image_encodings::YUV422) {
+         convert_encoding_to_rgb8(*processed_image);
      }
+     if (rotate_clockwise_) {
+         rotate_image_clockwise(*processed_image);
+     }
+
+     std::lock_guard<std::mutex> lock(*image_mutex_);
+     latest_image_ = std::move(processed_image);
  }
  
- void ImageComponent::convert_encoding_to_rgb8() {
+ void ImageComponent::convert_encoding_to_rgb8(sensor_msgs::msg::Image& image) {
      cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(image, sensor_msgs::image_encodings::YUV422);
      cv::Mat bgr_image;
      cv::cvtColor(cv_ptr->image, bgr_image, cv::COLOR_YUV2RGB_Y422);
      image.width = bgr_image.cols;
      image.height = bgr_image.rows;
      image.step = bgr_image.step;
+     image.encoding = sensor_msgs::image_encodings::RGB8;
      image.data.assign(bgr_image.datastart, bgr_image.dataend);
+ }
+
+ void ImageComponent::rotate_image_clockwise(sensor_msgs::msg::Image& image) {
+     cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(image, image.encoding);
+     cv::Mat rotated;
+     cv::rotate(cv_ptr->image, rotated, cv::ROTATE_90_CLOCKWISE);
+     cv_ptr->image = std::move(rotated);
+     cv_ptr->toImageMsg(image);
  }
  
  void ImageComponent::cb_message_received_cam_info(std::shared_ptr<const sensor_msgs::msg::CameraInfo> msg) {
@@ -97,6 +117,7 @@
  ImageComponentFrontRight::ImageComponentFrontRight() : ImageComponent() {}
  
  ImageComponentFrontRight::ImageComponentFrontRight(std::shared_ptr<rclcpp::Node> subNode) {
+     rotate_clockwise_ = true;
      initialize_subscriptions(subNode);
  }
  
@@ -111,6 +132,7 @@
  ImageComponentFrontLeft::ImageComponentFrontLeft() : ImageComponent() {}
  
  ImageComponentFrontLeft::ImageComponentFrontLeft(std::shared_ptr<rclcpp::Node> subNode) {
+    rotate_clockwise_ = true;
     initialize_subscriptions(subNode);
  }
  

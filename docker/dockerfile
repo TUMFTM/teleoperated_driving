@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1.7
+
 ###################################################################################
 ###--- tod_base --Base----------------------------------------------------------###
 ###################################################################################
@@ -22,6 +24,12 @@ RUN groupadd --gid ${DOCKER_GID} ${DOCKER_USERNAME} \
     && rm -rf /var/lib/apt-get/lists/*
 ENV DOCKER_USERNAME=${DOCKER_USERNAME}
 
+###--- Use a nearby Ubuntu mirror for more reliable package downloads -----------###
+RUN sed -i \
+    -e 's#http://archive.ubuntu.com/ubuntu#http://mirrors.tuna.tsinghua.edu.cn/ubuntu#g' \
+    -e 's#http://security.ubuntu.com/ubuntu#http://mirrors.tuna.tsinghua.edu.cn/ubuntu#g' \
+    /etc/apt/sources.list
+
 ###--- Remove old GPG key and update ---###
 RUN set -eux; \
     rm -f /etc/apt/sources.list.d/ros2*.list \
@@ -29,25 +37,37 @@ RUN set -eux; \
           /usr/share/keyrings/ros-archive-keyring.gpg; \
     apt-get update && \
     apt-get install -y --no-install-recommends curl gnupg2 ca-certificates; \
-    curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
+    curl --retry 5 --retry-delay 2 -fsSL https://mirrors.tuna.tsinghua.edu.cn/rosdistro/ros.key \
       | gpg --dearmor -o /usr/share/keyrings/ros-archive-keyring.gpg; \
     echo "deb [arch=$(dpkg --print-architecture) \
         signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] \
-        http://packages.ros.org/ros2/ubuntu \
+        http://mirrors.tuna.tsinghua.edu.cn/ros2/ubuntu \
         $(. /etc/os-release && echo $VERSION_CODENAME) main" \
       > /etc/apt/sources.list.d/ros2.list
 
 ###--- Install basic apt packages -----------------------------------------------###
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
     cmake \
-    make \
     pkg-config \
+    python3-dev \
     git \
     software-properties-common
 
 ###--- Install ROS packages -----------------------------------------------------###
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-${ROS_DISTRO}-rmw-cyclonedds-cpp
+
+###--- Improve network resilience for apt and rosdep ----------------------------###
+RUN printf '%s\n' \
+    'Acquire::Retries "5";' \
+    'Acquire::http::Timeout "60";' \
+    'Acquire::https::Timeout "60";' \
+    > /etc/apt/apt.conf.d/80network-retries \
+    && sed -i \
+        's#https://raw.githubusercontent.com/ros/rosdistro/master#https://mirrors.tuna.tsinghua.edu.cn/rosdistro#g' \
+        /etc/ros/rosdep/sources.list.d/20-default.list
+ENV ROSDISTRO_INDEX_URL=https://mirrors.tuna.tsinghua.edu.cn/rosdistro/index-v4.yaml
 
 ###--- Install GSTREAMER packages -----------------------------------------------###
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -83,7 +103,9 @@ WORKDIR /home/${DOCKER_USERNAME}/wsp
 ###--- Setup entrypoint --------------------------------------------------------###
 RUN chown -R ${DOCKER_UID}:${DOCKER_GID} /home/${DOCKER_USERNAME}/wsp
 COPY ./docker/entrypoint.sh /
-RUN ["chmod", "+x", "/entrypoint.sh"]
+COPY ./docker/colcon_retry.sh /usr/local/bin/colcon_retry
+COPY ./docker/rosdep_retry.sh /usr/local/bin/rosdep_retry
+RUN chmod +x /entrypoint.sh /usr/local/bin/colcon_retry /usr/local/bin/rosdep_retry
 ENTRYPOINT [ "/entrypoint.sh" ]
 
 
@@ -99,8 +121,7 @@ USER ${DOCKER_USERNAME}
 
 ###--- Install dependencies via rosdep -----------------------------------------###
 RUN --mount=type=bind,source=src,target=/home/${DOCKER_USERNAME}/wsp/src \
-    rosdep update \
-    && rosdep install --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} -y 
+    rosdep_retry ${ROS_DISTRO}
 
 ###--- Source entrypoint -------------------------------------------------------###
 RUN echo "source /entrypoint.sh" >> /home/${DOCKER_USERNAME}/.bashrc
@@ -142,17 +163,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ###--- Install OpenVR ----------------------------------------------------------###
 RUN add-apt-repository multiverse -y
 RUN cd /tmp && \
-    git clone https://github.com/ValveSoftware/openvr.git openvr && \
-    cd openvr && \
-    git checkout tags/v1.14.15 && \
+    curl --retry 5 --retry-all-errors --retry-delay 2 -fL \
+        https://codeload.github.com/ValveSoftware/openvr/tar.gz/refs/tags/v1.14.15 \
+        -o openvr-v1.14.15.tar.gz && \
+    tar -xzf openvr-v1.14.15.tar.gz && \
+    cd openvr-1.14.15 && \
     mkdir build && \
     cd build && \
     cmake .. && \
-    make -j32 && \
+    make -j"$(nproc)" && \
     sudo make install && \
     sudo ldconfig && \
     cd /tmp && \
-    rm -r openvr
+    rm -rf openvr-1.14.15 openvr-v1.14.15.tar.gz
 
 RUN apt-get update
 
@@ -162,8 +185,7 @@ USER ${DOCKER_USERNAME}
 ###--- Install dependencies via rosdep -----------------------------------------###
 WORKDIR /home/${DOCKER_USERNAME}/wsp
 RUN --mount=type=bind,source=src,target=/home/${DOCKER_USERNAME}/wsp/src \
-    rosdep update \
-    && rosdep install --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} -y
+    rosdep_retry ${ROS_DISTRO}
 
 ###--- Source entrypoint -------------------------------------------------------###
 RUN echo "source /entrypoint.sh" >> /home/${DOCKER_USERNAME}/.bashrc
@@ -180,7 +202,19 @@ WORKDIR /home/${DOCKER_USERNAME}/wsp
 RUN --mount=type=bind,source=src,target=/home/${DOCKER_USERNAME}/wsp/src \
     --mount=type=bind,source=config,target=/home/${DOCKER_USERNAME}/wsp/config \
     source /opt/ros/${ROS_DISTRO}/setup.bash \
-    && colcon build ${VEHICLE_BUILD_ARGS}
+    && colcon_retry vehicle ${VEHICLE_BUILD_ARGS}
+
+# The safety gate is required by every vehicle launch profile. Build and verify
+# it explicitly so an incomplete generic workspace install fails at image build.
+# Root is required here because BuildKit owns context mounts and may preserve a
+# restrictive source-directory mode that hides the package from the build user.
+USER root
+RUN --mount=type=bind,source=src,target=/home/${DOCKER_USERNAME}/wsp/src \
+    source /opt/ros/${ROS_DISTRO}/setup.bash \
+    && source install/setup.bash \
+    && colcon_retry vehicle-safety --packages-select tod_safety_gate ${VEHICLE_BUILD_ARGS} \
+    && test -x install/tod_safety_gate/lib/tod_safety_gate/safety_gate
+USER ${DOCKER_USERNAME}
 
 
 ###################################################################################
@@ -195,7 +229,7 @@ WORKDIR /home/${DOCKER_USERNAME}/wsp
 RUN --mount=type=bind,source=src,target=/home/${DOCKER_USERNAME}/wsp/src \
     --mount=type=bind,source=config,target=/home/${DOCKER_USERNAME}/wsp/config \
     source /opt/ros/${ROS_DISTRO}/setup.bash \
-    && colcon build ${OPERATOR_BUILD_ARGS}
+    && colcon_retry operator ${OPERATOR_BUILD_ARGS}
 
 
 ###################################################################################
@@ -247,6 +281,18 @@ FROM tod_vehicle_base AS tod_vehicle
 COPY --from=tod_vehicle_builder \
      /home/${DOCKER_USERNAME}/wsp/install /home/${DOCKER_USERNAME}/wsp/install
 
+USER root
+RUN mkdir -p /opt/tod-tools
+COPY --chmod=0755 work/peanut01_lidar_domain_bridge.py \
+                  work/peanut01_can_feedback.py \
+                  work/peanut01_control_bridge.py \
+                  work/peanut01_control_mapping.py \
+                  work/peanut01_control_supervisor.py \
+                  work/peanut01_vehicle_state_bridge.py \
+                  work/peanut01_vehicle_state_mapping.py \
+                  /opt/tod-tools/
+USER ${DOCKER_USERNAME}
+
 
 ###################################################################################
 ###--- tod_operator --Deployment------------------------------------------------###
@@ -256,3 +302,15 @@ FROM tod_operator_base AS tod_operator
 ###--- Copy install files from builder -----------------------------------------###
 COPY --from=tod_operator_builder \
      /home/${DOCKER_USERNAME}/wsp/install /home/${DOCKER_USERNAME}/wsp/install
+
+USER root
+RUN mkdir -p /opt/tod-tools
+COPY --chmod=0755 work/set_g923_autocenter.py /opt/tod-tools/
+COPY work/logitechg923.yaml /opt/tod-tools/logitechg923.yaml
+RUN install -m 0644 /opt/tod-tools/logitechg923.yaml \
+        /home/${DOCKER_USERNAME}/wsp/install/tod_input_devices/share/tod_input_devices/config/virtual.yaml \
+    && install -m 0644 /opt/tod-tools/logitechg923.yaml \
+        /home/${DOCKER_USERNAME}/wsp/install/tod_input_devices/share/tod_input_devices/config/logitechg923.yaml \
+    && chown -R ${DOCKER_USERNAME}:${DOCKER_USERNAME} /opt/tod-tools \
+        /home/${DOCKER_USERNAME}/wsp/install/tod_input_devices/share/tod_input_devices/config
+USER ${DOCKER_USERNAME}

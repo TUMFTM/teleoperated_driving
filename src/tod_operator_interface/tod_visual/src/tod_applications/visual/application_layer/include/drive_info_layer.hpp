@@ -30,7 +30,7 @@
 
 namespace tod_visual {
 // TODO: What about this templating here? Does that do anything for us?
-template <class PrimaryVehicleStateComp, class SecondaryVehicleStateComp, class ToDStatusComponent, class AutomationStatusComponent, class NetworkMetricsComponent, class JoyStickComp, class SecondaryControlComp>
+template <class PrimaryVehicleStateComp, class SecondaryVehicleStateComp, class ToDStatusComponent, class AutomationStatusComponent, class NetworkMetricsComponent, class JoyStickComp, class PrimaryControlComp, class SecondaryControlComp>
 
 /**
  * @class DriveInfoLayer
@@ -41,6 +41,7 @@ template <class PrimaryVehicleStateComp, class SecondaryVehicleStateComp, class 
  * @tparam AutomationStatusComponent The component type to retrieve automation status.
  * @tparam NetworkMetricsComponent   The component type to retrieve network metrics.
  * @tparam JoyStickComp              The component type to retrieve joystick state.
+ * @tparam PrimaryControlComp        The component type to retrieve primary control commands.
  * @tparam SecondaryControlComp      The component type to retrieve secondary control state.
  * @copyright 2024 TUMFTM
  */
@@ -205,12 +206,6 @@ class DriveInfoLayer : public UILayer {
         ImVec2 speed_size = ImGui::CalcTextSize(velocity_text);
         ImGui::PopFont();
 
-        char desired_velocity_text[32];
-        sprintf(desired_velocity_text, "%d", (int)(desired_speed_));
-        ImGui::PushFont(DriveInfoFontMedium_);
-        ImVec2 desired_speed_size = ImGui::CalcTextSize(desired_velocity_text);
-        ImGui::PopFont();
-
         ImGui::PushFont(DriveInfoFont_);
         ImVec2 unit_size = ImGui::CalcTextSize("km/h");
         ImGui::PopFont();
@@ -229,14 +224,7 @@ class DriveInfoLayer : public UILayer {
         ImGui::Text("km/h");
         ImGui::PopFont();
 
-        float desired_start_x = (available_width - desired_speed_size.x) * 0.5f;
-        float desired_start_y = start_y + speed_size.y * 1.f;
-        ImGui::SetCursorPos(ImVec2(desired_start_x, desired_start_y));
-        ImGui::PushFont(DriveInfoFontMedium_);
-        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(180, 180, 180, 255));
-        ImGui::Text("%s", desired_velocity_text);
-        ImGui::PopStyleColor();
-        ImGui::PopFont();
+        float speed_control_y = start_y + speed_size.y;
 
         // Get camera and cameraController for button functionality
         tod_gl::Entity vp_frame_buffer = _active_scene->find_entity_with_tag("ViewPortFramebuffer");
@@ -330,9 +318,9 @@ class DriveInfoLayer : public UILayer {
         ImVec2 network_pos = ImVec2(available_width * 0.78f, (available_height - interactiveButtons_.y) * 0.72f);
 
         ImVec2 increase_speed_pos =
-            ImVec2((available_width - zoom_button_size.x) * 0.5f + 75, desired_start_y + zoom_button_size.y);
+            ImVec2((available_width - zoom_button_size.x) * 0.5f + 75, speed_control_y + zoom_button_size.y);
         ImVec2 decrease_speed_pos =
-            ImVec2((available_width - zoom_button_size.x) * 0.5f - 75, desired_start_y + zoom_button_size.y);
+            ImVec2((available_width - zoom_button_size.x) * 0.5f - 75, speed_control_y + zoom_button_size.y);
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.0f, 1.0f, 1.0f, 0.0f));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1.0f, 1.0f, 1.0f, 0.4f));
         ImGui::SetCursorPos(increase_speed_pos);
@@ -513,16 +501,6 @@ class DriveInfoLayer : public UILayer {
 
         ImGui::PopFont();
 
-        // Gear changing shall not be available in GUI
-
-        ImGui::InvisibleButton("##target_gear", interactiveButtons_);
-
-        ImGui::SetCursorPos(ImVec2(gear_pos.x + (gear_text_size.x - unit_size.x) * .8f, gear_pos.y + gear_text_size.y * 0.4f));
-        ImGui::PushFont(DriveInfoFontMedium_);
-        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(180, 180, 180, 255));
-        ImGui::Text(targetGearText_.c_str());
-        ImGui::PopStyleColor();
-        ImGui::PopFont();
         // sound button
         // ImGui::SetCursorPos(soundPos);
         // ImVec2 soundMicSize = ImVec2(interactiveButtons.x * 1.8f, interactiveButtons.y * 0.9f);
@@ -629,8 +607,8 @@ class DriveInfoLayer : public UILayer {
 
         tod_gl::Entity subscription_manager = _active_scene->find_entity_with_tag("SubscriptionManager");
 
-        if (subscription_manager.has_component<PrimaryVehicleStateComp>()){
-            PrimaryVehicleStateComp &comp = subscription_manager.get_component<PrimaryVehicleStateComp>();
+        if (subscription_manager.has_component<PrimaryControlComp>()) {
+            PrimaryControlComp &comp = subscription_manager.get_component<PrimaryControlComp>();
             speed_ = 3.6f * comp.get_velocity();
         }
 
@@ -639,7 +617,6 @@ class DriveInfoLayer : public UILayer {
 
             currentGear_ = comp.get_gear_position();
 
-            gearDisplay_ = comp.get_gear_position_string();
             lightStatus_ = comp.get_flash_light();
 
             switch (comp.get_indicator()) {
@@ -676,8 +653,7 @@ class DriveInfoLayer : public UILayer {
 
         if (subscription_manager.has_component<SecondaryControlComp>()) {
             SecondaryControlComp &comp = subscription_manager.get_component<SecondaryControlComp>();
-
-            targetGearText_ = comp.get_gear_position_string();
+            gearDisplay_ = comp.get_gear_position_string();
         }
 
         if (subscription_manager.has_component<JoyStickComp>()) {
@@ -771,7 +747,6 @@ class DriveInfoLayer : public UILayer {
 
     std::string drivingMode_ = "TELEOPERATION";
     std::string vehicle_automation_state_ = "UNKNOWN";
-    std::string targetGearText_ = "P";
     float speed_ = 0.0f;
     float desired_speed_ = 0.0;
     std::string gearDisplay_ = "D";

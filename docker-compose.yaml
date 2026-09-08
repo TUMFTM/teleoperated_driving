@@ -140,7 +140,7 @@ services:
       # - DISPLAY=host.docker.internal:0 # when using X11 forwarding to host
       - XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR
       - MESA_GL_VERSION_OVERRIDE=3.3
-      - XAUTHORITY=/run/user/1000/gdm/Xauthority
+      - XAUTHORITY=/root/.Xauthority
       - LOAD_PCAN_DRIVERS=false
     privileged: true
   
@@ -169,7 +169,7 @@ services:
   ###################################################################################
   tod_vehicle:
     extends: tod_base
-    image: ${DOCKER_REGISTRY}/tod_vehicle:${DOCKER_TAG:?}
+    image: ${TOD_VEHICLE_IMAGE:?}:${DOCKER_TAG:?}
     container_name: tod_vehicle_${DOCKER_TAG:?}
     build:
       context: .
@@ -189,7 +189,7 @@ services:
     command: ros2 launch tod_launch tod_vehicle.launch.py
              mode:=${MODE:?}
              vehicleID:=${VEHICLE_ID:?}
-             vehicleNetworkInterface:=eth_opt_0
+             vehicleNetworkInterface:=${VEHICLE_NETWORK_INTERFACE:?}
 
 
   ###################################################################################
@@ -212,7 +212,7 @@ services:
   ###################################################################################
   tod_operator:
     extends: tod_base
-    image: ${DOCKER_REGISTRY}/tod_operator:${DOCKER_TAG:?}
+    image: ${TOD_OPERATOR_IMAGE:?}:${DOCKER_TAG:?}
     container_name: tod_operator_${DOCKER_TAG:?}
     build:
       context: .
@@ -235,12 +235,12 @@ services:
       - DISPLAY=$DISPLAY
       - XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR
       - MESA_GL_VERSION_OVERRIDE=3.3
-      - XAUTHORITY=/run/user/1000/gdm/Xauthority
+      - XAUTHORITY=/root/.Xauthority
       - LOAD_PCAN_DRIVERS=true
     privileged: true 
     command: ros2 launch tod_launch tod_operator.launch.py
              vehicleID:=${VEHICLE_ID:?}
-             operatorNetworkInterface:=tun0
+             operatorNetworkInterface:=${OPERATOR_NETWORK_INTERFACE:?}
              
 
   ###################################################################################
